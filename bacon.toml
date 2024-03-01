@@ -1,0 +1,17 @@
+# This is a configuration file for the bacon tool
+# More info at https://github.com/Canop/bacon
+
+default_job = "cranky"
+
+[jobs]
+
+[jobs.cranky]
+command = [
+  "cargo",
+  "clippy",
+  "--all-targets",
+  "--all-features",
+  "--color=always",
+]
+need_stdout = false
+watch = ["tests", "benches", "examples"]
