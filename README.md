@@ -10,7 +10,7 @@ Revy works by snapshotting diffs of the Bevy database every frame that are then 
 This allows you to inspect and visualize the state of the engine at any point in time, either in real-time or after the fact.  
 These recordings can then be shared to be replayed or e.g. attached to bug reports.
 
-<!-- TODO: video -->
+https://github.com/rerun-io/revy/assets/2910679/cd096cbe-5e68-4acf-8010-e6c32c5568dc
 
 ## Examples 
 
