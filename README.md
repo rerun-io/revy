@@ -1,5 +1,10 @@
 # Revy
 
+[![Latest version](https://img.shields.io/crates/v/revy.svg)](https://crates.io/crates/revy)
+[![Documentation](https://docs.rs/revy/badge.svg)](https://docs.rs/revy)
+[![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/rerun-io/revy/blob/master/LICENSE-MIT)
+[![Apache](https://img.shields.io/badge/license-Apache-blue.svg)](https://github.com/rerun-io/revy/blob/master/LICENSE-APACHE)
+
 Revy is a proof-of-concept time-travel debugger for the [Bevy](https://github.com/bevyengine/bevy) game engine, built using [Rerun](https://github.com/rerun-io/rerun).
 
 The general idea is that one would use Revy to investigate gameplay/physics/general-behavior-ish kinds of bugs.  
@@ -40,7 +45,7 @@ https://github.com/rerun-io/revy/assets/2910679/cd096cbe-5e68-4acf-8010-e6c32c55
         revy::RerunPlugin { rec }
     })
     ```
-    This will start a Rerun Viewer in the background and stream the recording data to it.
+    This will start a Rerun Viewer in the background and stream the recording data to it.  
     Check out the [`RecordingStreamBuilder`](https://docs.rs/rerun/latest/rerun/struct.RecordingStreamBuilder.html) docs for other options (saving to file, connecting to a remote viewer, etc).
 
 ## Custom loggers
