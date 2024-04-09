@@ -31,11 +31,11 @@ https://github.com/rerun-io/revy/assets/2910679/cd096cbe-5e68-4acf-8010-e6c32c55
 
 ## Usage
 
-1. [Install the Rerun Viewer](https://www.rerun.io/docs/getting-started/installing-viewer) (`0.14`).
+1. [Install the Rerun Viewer](https://www.rerun.io/docs/getting-started/installing-viewer) (`0.15`).
 
 2. Add `revy` to your dependencies:
     ```toml
-    revy = "0.14"  # always matches the rerun version
+    revy = "0.15"  # always matches the rerun version
     ```
 
 3. Initialize the `rerun` plugin:
@@ -86,3 +86,4 @@ You can also register your own custom loggers by inserting a `RerunComponentLogg
 | Bevy                                                             | Revy                                                          | Rerun                                                          |
 | ---------------------------------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------- |
 | [0.13](https://github.com/bevyengine/bevy/releases/tag/v0.13.0)  | [0.14](https://github.com/rerun-io/revy/releases/tag/0.14.0)  | [0.14](https://github.com/rerun-io/rerun/releases/tag/0.14.0)  |
+| [0.13](https://github.com/bevyengine/bevy/releases/tag/v0.13.0)  | [0.15](https://github.com/rerun-io/revy/releases/tag/0.15.0)  | [0.15](https://github.com/rerun-io/rerun/releases/tag/0.15.0)  |
