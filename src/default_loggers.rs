@@ -265,17 +265,17 @@ fn bevy_sprite<'w>(
                 })
                 .flatten()
                 .and_then(|tex| {
-                    tex.image_height_width_channels().map(|[w, h, _]| {
+                    tex.image_height_width_channels().and_then(|[w, h, _]| {
                         let mesh = PlaneMeshBuilder::default()
                             .normal(Direction3d::Z)
                             .size(w as _, h as _)
                             .build();
-                        mesh.to_rerun()
-                            .unwrap()
-                            .with_mesh_material(rerun::Material::from_albedo_factor(
+                        mesh.to_rerun().map(|mesh| {
+                            mesh.with_mesh_material(rerun::Material::from_albedo_factor(
                                 sprite.color.to_rerun().0,
                             ))
                             .with_albedo_texture(tex)
+                        })
                     })
                 })
         })
