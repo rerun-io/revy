@@ -1,59 +1,10 @@
+# Mac stuff:
 .DS_Store
 
-# Codegen stuff:
-crates/re_types/source_hash.txt
-crates/re_types_builder/source_hash.txt
+# Rust compile target directories:
+target
+target_ra
+target_wasm
 
-# C++ and CMake stuff:
-*.a
-*.bin
-*.o
-**/arrow/
-**/build/
-**/build-msvc/
-**/CMakeFiles/
-**/CMakeCache.txt
-**/Makefile
-**/cmake_install.cmake
-_deps
-**/.cache/
-**/rerun_cpp/docs/html
-
-# Rust compile target directory:
-**/target
-**/target_ra
-**/target_wasm
-
-# Python virtual environment:
-**/venv*
-.python-version
-
-# Python build artifacts:
-__pycache__
-*.pyc
-*.so
-
-# Pixi environment
-.pixi
-
-.gdb_history
-perf.data*
-
-**/dataset/
-
-# Screenshots from samples etc.
-screenshot*.png
-
-# Saved example `.rrd` files
-example_data
-
-# Various builds
-dist
-wheels
-
-# Screenshot comparison build
-/compare_screenshot
-
-.nox/
-*.rrd
-assets
+# https://github.com/lycheeverse/lychee
+.lycheecache
