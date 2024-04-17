@@ -218,7 +218,7 @@ impl<C: rerun::LoggableBatch> Aliased<C> {
 impl<C: rerun::LoggableBatch> rerun::AsComponents for Aliased<C> {
     #[inline]
     fn as_component_batches(&self) -> Vec<rerun::MaybeOwnedComponentBatch<'_>> {
-        vec![rerun::MaybeOwnedComponentBatch::Ref(self as _)]
+        vec![rerun::MaybeOwnedComponentBatch::Ref(self)]
     }
 }
 

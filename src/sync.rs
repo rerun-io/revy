@@ -128,7 +128,7 @@ fn sync_components(
     fn collect_events<A: Asset>(world: &mut World) -> Vec<AssetEvent<A>> {
         let events = world.resource_mut::<Events<AssetEvent<A>>>();
         let mut reader = ManualEventReader::<AssetEvent<A>>::default();
-        reader.read(&events).cloned().collect()
+        reader.read(&events).copied().collect()
     }
     let image_events = collect_events::<Image>(world);
     let mesh_events = collect_events::<Mesh>(world);
@@ -161,10 +161,8 @@ fn sync_components(
             .get::<CurrentHashes>()
             .unwrap_or(&empty_hashes);
 
-        let mut as_components: bevy::utils::HashMap<
-            Option<&'static str>,
-            Vec<Box<dyn rerun::AsComponents>>,
-        > = Default::default();
+        let mut as_components: HashMap<Option<&'static str>, Vec<Box<dyn rerun::AsComponents>>> =
+            Default::default();
         let info = world.inspect_entity(entity_id);
         for component in &info {
             let mut has_changed = entity
