@@ -302,7 +302,7 @@ fn component_to_hash(
                 // Safety: the type registry cannot be wrong, surely
                 .map(|ptr| unsafe { reflect_from_ptr.as_reflect(ptr) });
 
-            // TODO(cmc): `Reflect::reflect_hash` is basically never avaible so we go the long way
+            // TODO(cmc): `Reflect::reflect_hash` is basically never available so we go the long way
             // instead... this is likely waaay too costly in practice :)
             reflected.and_then(|reflected| {
                 let serializer = ReflectSerializer::new(reflected, &type_registry);
