@@ -94,7 +94,7 @@ impl RerunLogger {
 /// Use `None` to prevent the data from being logged entirely.
 ///
 /// Don't set anything if you want to let the default logger to take over.
-/// See [`DefaultComponentLoggers`] for more information.
+/// See [`crate::DefaultRerunComponentLoggers`] for more information.
 ///
 /// If no default logger exists, the data will be logged as a [`rerun::TextDocument`].
 #[derive(Resource, Deref, DerefMut, Clone)]

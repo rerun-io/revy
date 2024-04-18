@@ -12,7 +12,7 @@ use crate::{compute_entity_path, Aliased, RerunLogger, ToRerun};
 
 /// The default [`RerunLogger`]s that are used if no user-defined logger is specified.
 ///
-/// See [`RerunComponentLoggers`] for more information.
+/// See [`crate::RerunComponentLoggers`] for more information.
 ///
 /// Public so end users can easily inspect what is configured by default.
 #[derive(Resource, Deref, DerefMut, Clone, Debug)]
