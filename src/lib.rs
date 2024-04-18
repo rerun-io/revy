@@ -5,7 +5,7 @@ use bevy::prelude::*;
 // TODO(cmc): support for bug report mode (buffering + kickoff)
 
 pub struct RerunPlugin {
-    pub rec: rerun::RecordingStream,
+    pub rec: RecordingStream,
 }
 
 impl Plugin for RerunPlugin {

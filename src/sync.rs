@@ -128,7 +128,7 @@ fn sync_components(
     fn collect_events<A: Asset>(world: &mut World) -> Vec<AssetEvent<A>> {
         let events = world.resource_mut::<Events<AssetEvent<A>>>();
         let mut reader = ManualEventReader::<AssetEvent<A>>::default();
-        reader.read(&events).cloned().collect()
+        reader.read(&events).copied().collect()
     }
     let image_events = collect_events::<Image>(world);
     let mesh_events = collect_events::<Mesh>(world);
@@ -161,10 +161,8 @@ fn sync_components(
             .get::<CurrentHashes>()
             .unwrap_or(&empty_hashes);
 
-        let mut as_components: bevy::utils::HashMap<
-            Option<&'static str>,
-            Vec<Box<dyn rerun::AsComponents>>,
-        > = Default::default();
+        let mut as_components: HashMap<Option<&'static str>, Vec<Box<dyn rerun::AsComponents>>> =
+            Default::default();
         let info = world.inspect_entity(entity_id);
         for component in &info {
             let mut has_changed = entity
@@ -302,7 +300,7 @@ fn component_to_hash(
                 // Safety: the type registry cannot be wrong, surely
                 .map(|ptr| unsafe { reflect_from_ptr.as_reflect(ptr) });
 
-            // TODO(cmc): `Reflect::reflect_hash` is basically never avaible so we go the long way
+            // TODO(cmc): `Reflect::reflect_hash` is basically never available so we go the long way
             // instead... this is likely waaay too costly in practice :)
             reflected.and_then(|reflected| {
                 let serializer = ReflectSerializer::new(reflected, &type_registry);

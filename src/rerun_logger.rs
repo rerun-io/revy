@@ -94,7 +94,7 @@ impl RerunLogger {
 /// Use `None` to prevent the data from being logged entirely.
 ///
 /// Don't set anything if you want to let the default logger to take over.
-/// See [`DefaultComponentLoggers`] for more information.
+/// See [`crate::DefaultRerunComponentLoggers`] for more information.
 ///
 /// If no default logger exists, the data will be logged as a [`rerun::TextDocument`].
 #[derive(Resource, Deref, DerefMut, Clone)]
@@ -218,7 +218,7 @@ impl<C: rerun::LoggableBatch> Aliased<C> {
 impl<C: rerun::LoggableBatch> rerun::AsComponents for Aliased<C> {
     #[inline]
     fn as_component_batches(&self) -> Vec<rerun::MaybeOwnedComponentBatch<'_>> {
-        vec![rerun::MaybeOwnedComponentBatch::Ref(self as _)]
+        vec![rerun::MaybeOwnedComponentBatch::Ref(self)]
     }
 }
 

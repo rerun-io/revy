@@ -1,0 +1,109 @@
+# Copied from https://github.com/rerun-io/rerun_template
+on: [push, pull_request]
+
+name: Rust
+
+env:
+  RUSTFLAGS: -D warnings
+  RUSTDOCFLAGS: -D warnings
+
+jobs:
+  rust-check:
+    name: Rust
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: default
+          toolchain: 1.76.0
+          override: true
+
+      - name: Install packages (Linux)
+        uses: awalsh128/cache-apt-pkgs-action@v1.3.0
+        with:
+          # Random stuff required by `bevy`
+          packages: libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev libasound2-dev libudev-dev
+          version: 1.0
+          execute_install_scripts: true
+
+      - name: Set up cargo cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Rustfmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - name: Install cargo-cranky
+        uses: baptiste0928/cargo-install@v1
+        with:
+          crate: cargo-cranky
+
+      - name: check --all-features
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --all-features --all-targets
+
+      - name: check default features
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --all-targets
+
+      - name: check --no-default-features
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --no-default-features --lib --all-targets
+
+      - name: Test doc-tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --doc --all-features
+
+      - name: cargo doc --lib
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --lib --no-deps --all-features
+
+      - name: cargo doc --document-private-items
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --document-private-items --no-deps --all-features
+
+      - name: Build tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features --no-run
+
+      - name: Run test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features
+
+      - name: Cranky
+        uses: actions-rs/cargo@v1
+        with:
+          command: cranky
+          args: --all-targets --all-features -- -D warnings
+
+  # ---------------------------------------------------------------------------
+
+  cargo-deny:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - uses: EmbarkStudios/cargo-deny-action@v1
+      with:
+        rust-version: "1.76.0"
+        log-level: warn
+        command: check
