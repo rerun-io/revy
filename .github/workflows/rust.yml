@@ -24,7 +24,7 @@ jobs:
         uses: awalsh128/cache-apt-pkgs-action@v1.3.0
         with:
           # Random stuff required by `bevy`
-          packages: libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev libalsa
+          packages: libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev libasound2-dev libudev-dev
           version: 1.0
           execute_install_scripts: true
 
