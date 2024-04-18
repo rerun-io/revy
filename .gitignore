@@ -8,3 +8,5 @@ target_wasm
 
 # https://github.com/lycheeverse/lychee
 .lycheecache
+
+*.rrd
