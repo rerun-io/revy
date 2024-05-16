@@ -85,9 +85,8 @@ impl ToRerun<Option<rerun::archetypes::Mesh3D>> for Mesh {
 
             if let Some(indices) = self.indices() {
                 let indices = indices.iter().map(|i| i as u32).collect_vec();
-                mesh = mesh.with_mesh_properties(rerun::MeshProperties::from_triangle_indices(
-                    indices.chunks_exact(3).map(|is| [is[0], is[1], is[2]]),
-                ));
+                mesh = mesh
+                    .with_triangle_indices(indices.chunks_exact(3).map(|is| [is[0], is[1], is[2]]));
             }
 
             if let Some(VertexAttributeValues::Float32x3(normals)) =
