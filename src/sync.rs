@@ -36,7 +36,7 @@ pub struct RerunSyncPlugin {
 impl Plugin for RerunSyncPlugin {
     fn build(&self, app: &mut App) {
         self.rec
-            .log_timeless("world", &rerun::ViewCoordinates::RIGHT_HAND_Y_UP)
+            .log_static("world", &rerun::ViewCoordinates::RIGHT_HAND_Y_UP)
             .ok_or_log_error();
 
         let state = RerunSyncState {
