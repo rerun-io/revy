@@ -1,6 +1,6 @@
 [package]
 name = "revy"
-version = "0.16.0"
+version = "0.17.0"
 authors = ["rerun.io <opensource@rerun.io>"]
 categories = ["gamedev", "tools", "debugger"]
 description = "Proof-of-concept time-travel debugger for Bevy, built with Rerun."
@@ -12,7 +12,7 @@ license = "MIT OR Apache-2.0"
 publish = true
 readme = "README.md"
 repository = "https://github.com/rerun-io/revy"
-rust-version = "1.76"
+rust-version = "1.80"
 
 
 [package.metadata.docs.rs]
