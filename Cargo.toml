@@ -30,5 +30,5 @@ ron = "0.8"
 
 
 [dev-dependencies]
-bevy = { version = "0.14.0", features = ["dynamic_linking"] }
+bevy = { version = "0.14", features = ["dynamic_linking"] }
 # bevy = { path = "../../bevyengine/bevy/", features = ["dynamic_linking"] }
