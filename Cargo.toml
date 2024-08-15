@@ -22,13 +22,13 @@ targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
 
 [dependencies]
 rerun = { version = "0.16.0", default-features = false, features = ["sdk", "image", "glam"] }
-bevy = { version = "0.13" }
+bevy = { version = "0.14" }
 # bevy = { path = "../../bevyengine/bevy/" }
 
-itertools = "0.12"
+itertools = "0.13"
 ron = "0.8"
 
 
 [dev-dependencies]
-bevy = { version = "0.13.0", features = ["dynamic_linking"] }
+bevy = { version = "0.14.0", features = ["dynamic_linking"] }
 # bevy = { path = "../../bevyengine/bevy/", features = ["dynamic_linking"] }

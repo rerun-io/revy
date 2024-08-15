@@ -69,7 +69,7 @@ impl ToRerun<rerun::Transform3D> for GlobalTransform {
 impl ToRerun<rerun::Color> for Color {
     #[inline]
     fn to_rerun(&self) -> rerun::Color {
-        let [r, g, b, a] = self.as_rgba_u8();
+        let [r, g, b, a] = self.to_srgba().to_u8_array();
         // TODO(cmc): is this sRGB? linear? etc?
         rerun::Color::from_unmultiplied_rgba(r, g, b, a)
     }
