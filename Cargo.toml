@@ -2,7 +2,7 @@
 name = "revy"
 version = "0.17.0"
 authors = ["rerun.io <opensource@rerun.io>"]
-categories = ["gamedev", "tools", "debugger"]
+categories = ["game-development", "development-tools", "development-tools::debugging"]
 description = "Proof-of-concept time-travel debugger for Bevy, built with Rerun."
 edition = "2021"
 homepage = "https://rerun.io"
