@@ -267,7 +267,7 @@ fn bevy_sprite<'w>(
                 .and_then(|tex| {
                     tex.image_height_width_channels().and_then(|[w, h, _]| {
                         let mesh = PlaneMeshBuilder::default()
-                            .normal(Direction3d::Z)
+                            .normal(Dir3::Z)
                             .size(w as _, h as _)
                             .build();
                         mesh.to_rerun().map(|mesh| {
