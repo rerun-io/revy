@@ -253,6 +253,7 @@ impl<C: rerun::LoggableBatch> rerun::ComponentBatch for Aliased<C> {}
 // TODO(cmc): Rerun should provide tools for this.
 
 /// Helper to merge any number of [`rerun::AsComponents`].
+#[allow(dead_code)]
 pub struct ManyAsComponents(Vec<Box<dyn rerun::AsComponents>>);
 
 impl rerun::AsComponents for ManyAsComponents {
