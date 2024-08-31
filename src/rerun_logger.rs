@@ -180,9 +180,6 @@ fn component_to_ron(
 // ---
 
 // TODO(cmc): Rerun should provide tools for this.
-// TODO(cmc): All this traits are very messy... CompomnentName vs. DatatypeName in particular is
-// very annoying. Actually just Component vs. Datatype being different types in general is very
-// annoying.
 // TODO(cmc): the whole Loggable vs. LoggableBatch is also so messy
 
 use rerun::external::{arrow2, re_types_core};

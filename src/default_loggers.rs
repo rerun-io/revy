@@ -28,10 +28,11 @@ impl Default for DefaultRerunComponentLoggers {
             "bevy_transform::components::transform::Transform".into(),
             Some(RerunLogger::new_static(&bevy_transform)),
         );
-        loggers.insert(
-            "bevy_transform::components::global_transform::GlobalTransform".into(),
-            Some(RerunLogger::new_static(&bevy_global_transform)),
-        );
+        // TODO
+        // loggers.insert(
+        //     "bevy_transform::components::global_transform::GlobalTransform".into(),
+        //     Some(RerunLogger::new_static(&bevy_global_transform)),
+        // );
 
         loggers.insert(
             "bevy_sprite::mesh2d::mesh::Mesh2dHandle".into(),
@@ -98,6 +99,7 @@ fn bevy_transform<'w>(
     (suffix, data)
 }
 
+#[cfg(TODO)]
 fn bevy_global_transform<'w>(
     _world: &'w World,
     _all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
@@ -106,6 +108,7 @@ fn bevy_global_transform<'w>(
 ) -> (Option<&'static str>, Option<Box<dyn rerun::AsComponents>>) {
     let suffix = None;
 
+    // TODO: can we fix all of these this time?
     // TODO(cmc): up there we log transform3d as an archetype but down here we need
     // it to be a component, bit weird...
     // TODO(cmc): once again the DataUi does the wrong thing... we really need to
@@ -139,17 +142,13 @@ fn bevy_mesh<'w>(
                 .get::<Handle<ColorMaterial>>()
                 .and_then(|handle| world.resource::<Assets<ColorMaterial>>().get(handle))
             {
-                mesh = mesh.with_mesh_material(rerun::Material::from_albedo_factor(
-                    mat.color.to_rerun().0, // TODO(cmc): weird .0
-                ));
+                mesh = mesh.with_albedo_factor(mat.color.to_rerun().0);
             }
             if let Some(mat) = entity
                 .get::<Handle<StandardMaterial>>()
                 .and_then(|handle| world.resource::<Assets<StandardMaterial>>().get(handle))
             {
-                mesh = mesh.with_mesh_material(rerun::Material::from_albedo_factor(
-                    mat.base_color.to_rerun().0, // TODO(cmc): weird .0
-                ));
+                mesh = mesh.with_albedo_factor(mat.base_color.to_rerun().0);
 
                 if let Some(tex) = mat
                     .base_color_texture
@@ -157,7 +156,7 @@ fn bevy_mesh<'w>(
                     .and_then(|handle| world.resource::<Assets<Image>>().get(handle))
                     .and_then(ToRerun::to_rerun)
                 {
-                    mesh = mesh.with_albedo_texture(tex);
+                    mesh = mesh.with_albedo_texture(tex.format, tex.buffer);
                 }
             }
             mesh
@@ -265,17 +264,13 @@ fn bevy_sprite<'w>(
                 })
                 .flatten()
                 .and_then(|tex| {
-                    tex.image_height_width_channels().and_then(|[w, h, _]| {
-                        let mesh = PlaneMeshBuilder::default()
-                            .normal(Dir3::Z)
-                            .size(w as _, h as _)
-                            .build();
-                        mesh.to_rerun().map(|mesh| {
-                            mesh.with_mesh_material(rerun::Material::from_albedo_factor(
-                                sprite.color.to_rerun().0,
-                            ))
-                            .with_albedo_texture(tex)
-                        })
+                    let mesh = PlaneMeshBuilder::default()
+                        .normal(Dir3::Z)
+                        .size(tex.format.width as _, tex.format.height as _)
+                        .build();
+                    mesh.to_rerun().map(|mesh| {
+                        mesh.with_albedo_factor(sprite.color.to_rerun().0)
+                            .with_albedo_texture(tex.format, tex.buffer)
                     })
                 })
         })
@@ -349,6 +344,7 @@ fn bevy_children<'w>(
 ) -> (Option<&'static str>, Option<Box<dyn rerun::AsComponents>>) {
     let suffix = None;
 
+    // TODO: im not sure what i meant, but we can do this now
     // TODO(cmc): it is once again super annoying that number of instances gets resolved at logging
     // time... we need those clamp-to-edge semantics asap.
     // let data = entity
