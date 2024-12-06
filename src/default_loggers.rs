@@ -2,11 +2,10 @@ use bevy::{
     ecs::component::ComponentInfo,
     prelude::*,
     render::{mesh::PlaneMeshBuilder, primitives::Aabb},
-    sprite::Mesh2dHandle,
     utils::HashMap,
 };
 
-use crate::{compute_entity_path, Aliased, RerunLogger, ToRerun};
+use crate::{compute_entity_path, rerun_logger::ManyAsComponents, Aliased, RerunLogger, ToRerun};
 
 // ---
 
@@ -106,17 +105,23 @@ fn bevy_global_transform<'w>(
 ) -> (Option<&'static str>, Option<Box<dyn rerun::AsComponents>>) {
     let suffix = None;
 
-    // TODO(cmc): up there we log transform3d as an archetype but down here we need
-    // it to be a component, bit weird...
     // TODO(cmc): once again the DataUi does the wrong thing... we really need to
     // go typeless.
     let data = entity.get::<GlobalTransform>().map(|transform| {
-        let raw = Aliased::<rerun::components::Transform3D>::new(
-            "GlobalTransform3D",
-            transform.to_rerun().transform,
-        );
-
-        Box::new(raw) as _
+        Box::new(ManyAsComponents(vec![
+            Box::new(Aliased::<rerun::datatypes::Vec3D>::new(
+                "GlobalTransform3D.translation",
+                transform.translation().to_rerun(),
+            )),
+            Box::new(Aliased::<rerun::datatypes::Quaternion>::new(
+                "GlobalTransform3D.rotation",
+                transform.rotation().to_rerun(),
+            )),
+            Box::new(Aliased::<rerun::datatypes::Vec3D>::new(
+                "GlobalTransform3D.scale",
+                transform.scale().to_rerun(),
+            )),
+        ])) as _
     });
 
     (suffix, data)
@@ -136,28 +141,24 @@ fn bevy_mesh<'w>(
         .and_then(ToRerun::to_rerun)
         .map(|mut mesh| {
             if let Some(mat) = entity
-                .get::<Handle<ColorMaterial>>()
+                .get::<MeshMaterial2d<ColorMaterial>>()
                 .and_then(|handle| world.resource::<Assets<ColorMaterial>>().get(handle))
             {
-                mesh = mesh.with_mesh_material(rerun::Material::from_albedo_factor(
-                    mat.color.to_rerun().0, // TODO(cmc): weird .0
-                ));
+                mesh = mesh.with_albedo_factor(mat.color.to_rerun());
             }
             if let Some(mat) = entity
-                .get::<Handle<StandardMaterial>>()
+                .get::<MeshMaterial3d<StandardMaterial>>()
                 .and_then(|handle| world.resource::<Assets<StandardMaterial>>().get(handle))
             {
-                mesh = mesh.with_mesh_material(rerun::Material::from_albedo_factor(
-                    mat.base_color.to_rerun().0, // TODO(cmc): weird .0
-                ));
+                mesh = mesh.with_albedo_factor(mat.base_color.to_rerun());
 
-                if let Some(tex) = mat
+                if let Some((image_format, image_data)) = mat
                     .base_color_texture
                     .as_ref()
                     .and_then(|handle| world.resource::<Assets<Image>>().get(handle))
                     .and_then(ToRerun::to_rerun)
                 {
-                    mesh = mesh.with_albedo_texture(tex);
+                    mesh = mesh.with_albedo_texture(image_format, image_data)
                 }
             }
             mesh
@@ -179,7 +180,7 @@ fn bevy_mesh2d<'w>(
         all_entities,
         entity,
         component,
-        entity.get::<Mesh2dHandle>().map(|handle| &handle.0),
+        entity.get::<Mesh2d>().map(|handle| &handle.0),
     );
     (suffix, data)
 }
@@ -190,13 +191,13 @@ fn bevy_mesh3d<'w>(
     entity: EntityRef<'_>,
     component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Option<Box<dyn rerun::AsComponents>>) {
-    let suffix = Some("mesh2d");
+    let suffix = Some("mesh3d");
     let (_, data) = bevy_mesh(
         world,
         all_entities,
         entity,
         component,
-        entity.get::<Handle<Mesh>>(),
+        entity.get::<Mesh3d>().map(|handle| &handle.0),
     );
     (suffix, data)
 }
@@ -255,27 +256,18 @@ fn bevy_sprite<'w>(
     let data = entity
         .get::<Sprite>()
         .and_then(|sprite| {
-            entity
-                .get::<Handle<Image>>()
-                .and_then(|handle| {
-                    world
-                        .resource::<Assets<Image>>()
-                        .get(handle)
-                        .map(ToRerun::to_rerun)
-                })
-                .flatten()
-                .and_then(|tex| {
-                    tex.image_height_width_channels().and_then(|[w, h, _]| {
-                        let mesh = PlaneMeshBuilder::default()
-                            .normal(Dir3::Z)
-                            .size(w as _, h as _)
-                            .build();
-                        mesh.to_rerun().map(|mesh| {
-                            mesh.with_mesh_material(rerun::Material::from_albedo_factor(
-                                sprite.color.to_rerun().0,
-                            ))
-                            .with_albedo_texture(tex)
-                        })
+            world
+                .resource::<Assets<Image>>()
+                .get(sprite.image.id())
+                .and_then(ToRerun::to_rerun)
+                .and_then(|(image_format, image_data)| {
+                    let mesh = PlaneMeshBuilder::default()
+                        .normal(Dir3::Z)
+                        .size(image_format.width as _, image_format.height as _)
+                        .build();
+                    mesh.to_rerun().map(|mesh| {
+                        mesh.with_albedo_factor(sprite.color.to_rerun())
+                            .with_albedo_texture(image_format, image_data)
                     })
                 })
         })
@@ -301,12 +293,12 @@ fn bevy_aabb<'w>(
         })
         .map(|aabb| {
             if let Some(mat) = entity
-                .get::<Handle<ColorMaterial>>()
+                .get::<MeshMaterial2d<ColorMaterial>>()
                 .and_then(|handle| world.resource::<Assets<ColorMaterial>>().get(handle))
             {
                 aabb.with_colors([mat.color.to_rerun()])
             } else if let Some(mat) = entity
-                .get::<Handle<StandardMaterial>>()
+                .get::<MeshMaterial3d<StandardMaterial>>()
                 .and_then(|handle| world.resource::<Assets<StandardMaterial>>().get(handle))
             {
                 aabb.with_colors([mat.base_color.to_rerun()])

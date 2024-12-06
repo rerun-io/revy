@@ -55,7 +55,7 @@ impl ToRerun<rerun::Transform3D> for Transform {
         rerun::Transform3D::from_translation_rotation_scale(
             self.translation.to_rerun(),
             self.rotation.to_rerun(),
-            rerun::Scale3D::ThreeD(self.scale.to_rerun()),
+            rerun::Scale3D::from(self.scale.to_rerun()),
         )
     }
 }
@@ -66,12 +66,11 @@ impl ToRerun<rerun::Transform3D> for GlobalTransform {
     }
 }
 
-impl ToRerun<rerun::Color> for Color {
+impl ToRerun<rerun::Rgba32> for Color {
     #[inline]
-    fn to_rerun(&self) -> rerun::Color {
+    fn to_rerun(&self) -> rerun::Rgba32 {
         let [r, g, b, a] = self.to_srgba().to_u8_array();
-        // TODO(cmc): is this sRGB? linear? etc?
-        rerun::Color::from_unmultiplied_rgba(r, g, b, a)
+        rerun::Rgba32::from_unmultiplied_rgba(r, g, b, a)
     }
 }
 
@@ -122,39 +121,81 @@ impl ToRerun<Option<rerun::archetypes::Mesh3D>> for Mesh {
     }
 }
 
-impl ToRerun<Option<rerun::TensorData>> for Image {
+impl
+    ToRerun<
+        Option<(
+            rerun::components::ImageFormat,
+            rerun::components::ImageBuffer,
+        )>,
+    > for Image
+{
     #[inline]
-    fn to_rerun(&self) -> Option<rerun::TensorData> {
-        let depth = match self.texture_descriptor.format {
+    fn to_rerun(
+        &self,
+    ) -> Option<(
+        rerun::components::ImageFormat,
+        rerun::components::ImageBuffer,
+    )> {
+        let color_model = match self.texture_descriptor.format {
             bevy::render::render_resource::TextureFormat::R8Unorm
             | bevy::render::render_resource::TextureFormat::R8Snorm
             | bevy::render::render_resource::TextureFormat::R8Uint
-            | bevy::render::render_resource::TextureFormat::R8Sint => Some(1),
-
-            bevy::render::render_resource::TextureFormat::Rg8Unorm
-            | bevy::render::render_resource::TextureFormat::Rg8Snorm
-            | bevy::render::render_resource::TextureFormat::Rg8Uint
-            | bevy::render::render_resource::TextureFormat::Rg8Sint => Some(2),
+            | bevy::render::render_resource::TextureFormat::R8Sint => {
+                Some(rerun::datatypes::ColorModel::L)
+            }
 
             bevy::render::render_resource::TextureFormat::Rgba8Unorm
             | bevy::render::render_resource::TextureFormat::Rgba8UnormSrgb
             | bevy::render::render_resource::TextureFormat::Rgba8Snorm
             | bevy::render::render_resource::TextureFormat::Rgba8Uint
-            | bevy::render::render_resource::TextureFormat::Rgba8Sint
-            | bevy::render::render_resource::TextureFormat::Bgra8Unorm
-            | bevy::render::render_resource::TextureFormat::Bgra8UnormSrgb => Some(4),
+            | bevy::render::render_resource::TextureFormat::Rgba8Sint => {
+                Some(rerun::datatypes::ColorModel::RGBA)
+            }
 
+            bevy::render::render_resource::TextureFormat::Bgra8Unorm
+            | bevy::render::render_resource::TextureFormat::Bgra8UnormSrgb => {
+                Some(rerun::datatypes::ColorModel::BGRA)
+            }
+
+            // TODO(wumpf): many formats aren't covered.
             _ => None,
         };
+        let channel_datatype = match self.texture_descriptor.format {
+            bevy::render::render_resource::TextureFormat::R8Unorm
+            | bevy::render::render_resource::TextureFormat::R8Uint
+            | bevy::render::render_resource::TextureFormat::Rgba8Unorm
+            | bevy::render::render_resource::TextureFormat::Rgba8Uint
+            | bevy::render::render_resource::TextureFormat::Rgba8UnormSrgb
+            | bevy::render::render_resource::TextureFormat::Bgra8Unorm
+            | bevy::render::render_resource::TextureFormat::Bgra8UnormSrgb => {
+                Some(rerun::datatypes::ChannelDatatype::U8)
+            }
 
-        depth.map(|depth| {
-            rerun::TensorData::new(
-                vec![
-                    rerun::TensorDimension::width(self.width() as _),
-                    rerun::TensorDimension::height(self.height() as _),
-                    rerun::TensorDimension::depth(depth),
-                ],
-                rerun::TensorBuffer::U8(self.data.clone().into()),
+            bevy::render::render_resource::TextureFormat::R8Snorm
+            | bevy::render::render_resource::TextureFormat::R8Sint
+            | bevy::render::render_resource::TextureFormat::Rgba8Snorm
+            | bevy::render::render_resource::TextureFormat::Rgba8Sint => {
+                Some(rerun::datatypes::ChannelDatatype::I8)
+            }
+
+            // TODO(wumpf): map more datatypes.
+            _ => None,
+        };
+        // TODO(wumpf): doesn't distinguish between norm/non-norm and srgb/non-srgb.
+
+        let width_height = [self.width() as _, self.height() as _];
+
+        color_model.map(|_| {
+            (
+                rerun::datatypes::ImageFormat {
+                    width: width_height[0],
+                    height: width_height[1],
+                    pixel_format: None,
+                    color_model,
+                    channel_datatype,
+                }
+                .into(),
+                rerun::components::ImageBuffer(self.data.clone().into()),
             )
         })
     }

@@ -5,7 +5,7 @@ use bevy::{
     ecs::{
         component::{ComponentId, ComponentInfo},
         entity::EntityHashMap,
-        event::ManualEventReader,
+        event::EventCursor,
     },
     prelude::*,
     reflect::{serde::ReflectSerializer, ReflectFromPtr},
@@ -80,7 +80,7 @@ fn set_recording_time(world: &World, rec: &rerun::RecordingStream) {
     let _trace = info_span!("set_recording_time").entered();
 
     let time = world.resource::<Time>();
-    let elapsed = time.elapsed_seconds_f64();
+    let elapsed = time.elapsed_secs_f64();
 
     let tick = world.resource::<FrameCount>();
     let frame = tick.0;
@@ -127,8 +127,8 @@ fn sync_components(
     // TODO(cmc): do this the smart way
     fn collect_events<A: Asset>(world: &mut World) -> Vec<AssetEvent<A>> {
         let events = world.resource_mut::<Events<AssetEvent<A>>>();
-        let mut reader = ManualEventReader::<AssetEvent<A>>::default();
-        reader.read(&events).copied().collect()
+        let mut cursor = EventCursor::<AssetEvent<A>>::default();
+        cursor.read(&events).copied().collect()
     }
     let image_events = collect_events::<Image>(world);
     let mesh_events = collect_events::<Mesh>(world);
@@ -163,8 +163,7 @@ fn sync_components(
 
         let mut as_components: HashMap<Option<&'static str>, Vec<Box<dyn rerun::AsComponents>>> =
             Default::default();
-        let info = world.inspect_entity(entity_id);
-        for component in &info {
+        for component in world.inspect_entity(entity_id) {
             let mut has_changed = entity
                 .get_change_ticks_by_id(component.id())
                 .map_or(false, |changes| {
@@ -302,8 +301,9 @@ fn component_to_hash(
 
             // TODO(cmc): `Reflect::reflect_hash` is basically never available so we go the long way
             // instead... this is likely waaay too costly in practice :)
-            reflected.and_then(|reflected| {
-                let serializer = ReflectSerializer::new(reflected, &type_registry);
+            reflected.ok().and_then(|reflected| {
+                let serializer =
+                    ReflectSerializer::new(reflected.as_partial_reflect(), &type_registry);
                 let mut bytes = Vec::<u8>::new();
                 ron::ser::to_writer(&mut bytes, &serializer).ok()?;
 
