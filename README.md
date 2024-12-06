@@ -21,7 +21,7 @@ https://github.com/rerun-io/revy/assets/2910679/cd096cbe-5e68-4acf-8010-e6c32c55
 
 TODO: fix links & screenshots.
 
-|[Breakout](https://github.com/bevyengine/bevy/blob/v0.13.0/examples/games/breakout.rs)|[3D shapes](https://github.com/bevyengine/bevy/blob/v0.13.0/examples/3d/3d_shapes.rs)|[Alien Cake Addict](https://github.com/bevyengine/bevy/blob/v0.13.0/examples/games/alien_cake_addict.rs)|
+|[Breakout](https://github.com/bevyengine/bevy/blob/v0.15.0/examples/games/breakout.rs)|[3D shapes](https://github.com/bevyengine/bevy/blob/v0.15.0/examples/3d/3d_shapes.rs)|[Alien Cake Addict](https://github.com/bevyengine/bevy/blob/v0.15.0/examples/games/alien_cake_addict.rs)|
 | :----------------------------------------------------------------: | :-------------------------------------------------------------: | :--------------------------------------------------------------: |
 | [*Live demo*](https://app.rerun.io/version/0.14.1/index.html?url=https://storage.googleapis.com/rerun-example-datasets/revy/breakout_014_001.rrd) | [*Live demo*](https://app.rerun.io/version/0.14.1/index.html?url=https://storage.googleapis.com/rerun-example-datasets/revy/3d_shapes_014_001.rrd)| [*Live demo*](https://app.rerun.io/version/0.14.1/index.html?url=https://storage.googleapis.com/rerun-example-datasets/revy/alien_014_001.rrd) |
 | <picture> <img src="https://static.rerun.io/revy_breakout_title/a853af41115505212296813a0bef2373b105757b/full.png" alt=""> <source media="(max-width: 480px)" srcset="https://static.rerun.io/revy_breakout_title/a853af41115505212296813a0bef2373b105757b/480w.png"> <source media="(max-width: 768px)" srcset="https://static.rerun.io/revy_breakout_title/a853af41115505212296813a0bef2373b105757b/768w.png"> <source media="(max-width: 1024px)" srcset="https://static.rerun.io/revy_breakout_title/a853af41115505212296813a0bef2373b105757b/1024w.png"> <source media="(max-width: 1200px)" srcset="https://static.rerun.io/revy_breakout_title/a853af41115505212296813a0bef2373b105757b/1200w.png"> </picture> | <picture> <img src="https://static.rerun.io/revy_3dshapes_title/964446d03f1792b60e394e8c495e6fe16273939a/full.png" alt=""> <source media="(max-width: 480px)" srcset="https://static.rerun.io/revy_3dshapes_title/964446d03f1792b60e394e8c495e6fe16273939a/480w.png"> <source media="(max-width: 768px)" srcset="https://static.rerun.io/revy_3dshapes_title/964446d03f1792b60e394e8c495e6fe16273939a/768w.png"> <source media="(max-width: 1024px)" srcset="https://static.rerun.io/revy_3dshapes_title/964446d03f1792b60e394e8c495e6fe16273939a/1024w.png"> <source media="(max-width: 1200px)" srcset="https://static.rerun.io/revy_3dshapes_title/964446d03f1792b60e394e8c495e6fe16273939a/1200w.png"> </picture>  | <picture> <img src="https://static.rerun.io/revy_alien_title/3e4ba4f3cfb728942ecb38ba3e613f3498dda3e2/full.png" alt=""> <source media="(max-width: 480px)" srcset="https://static.rerun.io/revy_alien_title/3e4ba4f3cfb728942ecb38ba3e613f3498dda3e2/480w.png"> <source media="(max-width: 768px)" srcset="https://static.rerun.io/revy_alien_title/3e4ba4f3cfb728942ecb38ba3e613f3498dda3e2/768w.png"> <source media="(max-width: 1024px)" srcset="https://static.rerun.io/revy_alien_title/3e4ba4f3cfb728942ecb38ba3e613f3498dda3e2/1024w.png"> <source media="(max-width: 1200px)" srcset="https://static.rerun.io/revy_alien_title/3e4ba4f3cfb728942ecb38ba3e613f3498dda3e2/1200w.png"> </picture> |
@@ -49,6 +49,16 @@ TODO: fix links & screenshots.
     ```
     This will start a Rerun Viewer in the background and stream the recording data to it.  
     Check out the [`RecordingStreamBuilder`](https://docs.rs/rerun/latest/rerun/struct.RecordingStreamBuilder.html) docs for other options (saving to file, connecting to a remote viewer, etc).
+
+## Examples
+
+This repository comes with a number of pre-injected Bevy examples:
+
+```shell
+cargo run --example breakout
+cargo run --example alien_cake_addict
+```
+
 
 ## Custom loggers
 

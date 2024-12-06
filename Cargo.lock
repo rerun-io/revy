@@ -5054,6 +5054,8 @@ version = "0.20.0"
 dependencies = [
  "bevy",
  "itertools 0.13.0",
+ "rand",
+ "rand_chacha",
  "rerun",
  "ron",
 ]
