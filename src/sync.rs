@@ -93,19 +93,19 @@ fn set_recording_time(world: &World, rec: &rerun::RecordingStream) {
 
 // TODO(cmc): implement proper subscription model for asset dependencies
 const DEPENDS_ON_IMAGES: &[&str] = &[
-    "bevy_asset::handle::Handle<bevy_render::mesh::mesh::Mesh>",
+    "bevy_render::mesh::components::Mesh3d",
     "bevy_sprite::sprite::Sprite",
 ];
 const DEPENDS_ON_MESHES: &[&str] = &[
-    "bevy_asset::handle::Handle<bevy_render::mesh::mesh::Mesh>", //
+    "bevy_render::mesh::components::Mesh3d", //
 ];
 const DEPENDS_ON_STDMATS: &[&str] = &[
-    "bevy_asset::handle::Handle<bevy_render::mesh::mesh::Mesh>", //
-    "bevy_render::primitives::Aabb",                             //
+    "bevy_render::mesh::components::Mesh3d", //
+    "bevy_render::primitives::Aabb",         //
 ];
 const DEPENDS_ON_COLMATS: &[&str] = &[
-    "bevy_asset::handle::Handle<bevy_render::mesh::mesh::Mesh>", //
-    "bevy_render::primitives::Aabb",                             //
+    "bevy_render::mesh::components::Mesh3d", //
+    "bevy_render::primitives::Aabb",         //
 ];
 
 /// Synchronize the Bevy and Rerun database by logging all components appropriately.

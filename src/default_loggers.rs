@@ -33,11 +33,11 @@ impl Default for DefaultRerunComponentLoggers {
         );
 
         loggers.insert(
-            "bevy_sprite::mesh2d::mesh::Mesh2dHandle".into(),
+            "bevy_render::mesh::components::Mesh2d".into(),
             Some(RerunLogger::new_static(&bevy_mesh2d)),
         );
         loggers.insert(
-            "bevy_asset::handle::Handle<bevy_render::mesh::mesh::Mesh>".into(),
+            "bevy_render::mesh::components::Mesh3d".into(),
             Some(RerunLogger::new_static(&bevy_mesh3d)),
         );
 
