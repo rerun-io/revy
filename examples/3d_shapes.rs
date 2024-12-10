@@ -38,12 +38,20 @@ fn main() {
             #[cfg(not(target_arch = "wasm32"))]
             WireframePlugin,
         ))
+        // ==== Instantiating the Rerun plugin ===========================================
+        //
+        // This is the only modification that was applied to this example.
+        //
+        // This will start a Rerun Viewer in the background and stream the recording data to it.
+        // Check out the `RecordingStreamBuilder` (<https://docs.rs/rerun/latest/rerun/struct.RecordingStreamBuilder.html>)
+        // docs for other options (saving to file, connecting to a remote viewer, etc).
         .add_plugins({
             let rec = revy::RecordingStreamBuilder::new("3d_shapes")
                 .spawn()
                 .unwrap();
             revy::RerunPlugin { rec }
         })
+        // ===============================================================================
         .add_systems(Startup, setup)
         .add_systems(
             Update,

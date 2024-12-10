@@ -66,12 +66,20 @@ const SCORE_COLOR: Color = Color::srgb(1.0, 0.5, 0.5);
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        // ==== Instantiating the Rerun plugin ===========================================
+        //
+        // This is the only modification that was applied to this example.
+        //
+        // This will start a Rerun Viewer in the background and stream the recording data to it.
+        // Check out the `RecordingStreamBuilder` (<https://docs.rs/rerun/latest/rerun/struct.RecordingStreamBuilder.html>)
+        // docs for other options (saving to file, connecting to a remote viewer, etc).
         .add_plugins({
             let rec = revy::RecordingStreamBuilder::new("breakout")
                 .spawn()
                 .unwrap();
             revy::RerunPlugin { rec }
         })
+        // ===============================================================================
         .insert_resource(Score(0))
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_event::<CollisionEvent>()

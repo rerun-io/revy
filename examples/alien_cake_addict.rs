@@ -36,12 +36,20 @@ struct BonusSpawnTimer(Timer);
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        // ==== Instantiating the Rerun plugin ===========================================
+        //
+        // This is the only modification that was applied to this example.
+        //
+        // This will start a Rerun Viewer in the background and stream the recording data to it.
+        // Check out the `RecordingStreamBuilder` (<https://docs.rs/rerun/latest/rerun/struct.RecordingStreamBuilder.html>)
+        // docs for other options (saving to file, connecting to a remote viewer, etc).
         .add_plugins({
             let rec = revy::RecordingStreamBuilder::new("alien_cake_addict")
                 .spawn()
                 .unwrap();
             revy::RerunPlugin { rec }
         })
+        // ===============================================================================
         .init_resource::<Game>()
         .insert_resource(BonusSpawnTimer(Timer::from_seconds(
             5.0,
