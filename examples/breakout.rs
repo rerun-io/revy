@@ -10,6 +10,13 @@
 //!
 //! Demonstrates Bevy's stepping capabilities if compiled with the `bevy_debug_stepping` feature.
 
+// All of these have the same justification: this is not our code.
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::needless_pass_by_value)]
+#![allow(elided_lifetimes_in_paths)]
+#![allow(clippy::missing_assert_message)]
+#![allow(clippy::disallowed_methods)]
+
 use bevy::{
     math::bounding::{Aabb2d, BoundingCircle, BoundingVolume, IntersectsVolume},
     prelude::*,

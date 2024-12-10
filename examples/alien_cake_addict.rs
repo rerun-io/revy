@@ -8,6 +8,15 @@
 //!
 //! Eat the cakes. Eat them all. An example 3D game.
 
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::needless_pass_by_value)]
+#![allow(elided_lifetimes_in_paths)]
+#![allow(clippy::missing_assert_message)]
+#![allow(clippy::disallowed_methods)]
+#![allow(clippy::str_to_string)]
+#![allow(clippy::type_complexity)]
+#![allow(clippy::explicit_iter_loop)]
+
 use std::f32::consts::PI;
 
 use bevy::prelude::*;

@@ -12,6 +12,12 @@
 //! You can toggle wireframes with the space bar except on wasm. Wasm does not support
 //! `POLYGON_MODE_LINE` on the gpu.
 
+#![allow(clippy::unwrap_used)]
+#![allow(clippy::needless_pass_by_value)]
+#![allow(elided_lifetimes_in_paths)]
+#![allow(clippy::missing_assert_message)]
+#![allow(clippy::disallowed_methods)]
+
 use std::f32::consts::PI;
 
 #[cfg(not(target_arch = "wasm32"))]
