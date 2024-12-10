@@ -44,7 +44,7 @@ https://github.com/rerun-io/revy/assets/2910679/cd096cbe-5e68-4acf-8010-e6c32c55
     ```
 
 3. Initialize the `rerun` plugin:
-    ```rust
+    ```rust,ignore
     .add_plugins({
         let rec = revy::RecordingStreamBuilder::new("<your_app_name>").spawn().unwrap();
         revy::RerunPlugin { rec }
@@ -68,7 +68,7 @@ cargo run --example alien_cake_addict
 Revy will record every components of every single entity (), either using one of the builtin [dedicated loggers](./src/default_loggers.rs), or using the generic reflection-based logger.
 
 You can also register your own custom loggers by inserting a `RerunComponentLoggers` resource:
-```rust
+```rust,ignore
 .insert_resource(revy::RerunComponentLoggers::new([
     (
         "bevy_render::view::visibility::ViewVisibility".into(),
