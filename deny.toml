@@ -40,20 +40,23 @@ deny = []
 skip = []
 skip-tree = [
   # TODO(emilk): minimize duplicated dependencies
-  "async-fs",
-  "async-io",
+  "base64",
+  "bit-set",
+  "bit-vec",
   "cargo_metadata",
+  "core-foundation", # bevy_gilrs depends on an older version that wgpu's metal & winit
   "event-listener",
-  "glam",
+  "fixedbitset",     # Bevy has internally several versions
+  "glam",            # Rerun is behind versus Bevy
+  "itertools",
   "libloading",
   "nix",
-  "objc2",
-  "raw-window-handle", # Small crate
+  "re_arrow2",       # drags in all sort of dependencies that are duplicates with Bevy
   "redox_syscall",
   "regex-automata",
   "regex-syntax",
-  "toml_edit",
-  "tracing-log",
+  "sysinfo",         # rerun depends on 0.30, bevy on 0.32
+  "ttf-parser",      # cosmic-text 0.12.1 depends on one version directly and on another one via fontdb 0.16.2
   "windows-sys",
   "windows",
 ]
@@ -71,13 +74,12 @@ allow = [
   "BSL-1.0",                        # https://tldrlegal.com/license/boost-software-license-1.0-explained
   "CC0-1.0",                        # https://creativecommons.org/publicdomain/zero/1.0/
   "ISC",                            # https://www.tldrlegal.com/license/isc-license
-  "LicenseRef-UFL-1.0",             # See https://github.com/emilk/egui/issues/2321
   "MIT-0",                          # https://choosealicense.com/licenses/mit-0/
   "MIT",                            # https://tldrlegal.com/license/mit-license
   "MPL-2.0",                        # https://www.mozilla.org/en-US/MPL/2.0/FAQ/ - see Q11. Used by webpki-roots on Linux.
   "OFL-1.1",                        # https://spdx.org/licenses/OFL-1.1.html
   "OpenSSL",                        # https://www.openssl.org/source/license.html - used on Linux
-  "Unicode-DFS-2016",               # https://spdx.org/licenses/Unicode-DFS-2016.html
+  "Unicode-3.0",                    # https://www.unicode.org/license.txt
   "Zlib",                           # https://tldrlegal.com/license/zlib-libpng-license-(zlib)
 ]
 exceptions = []

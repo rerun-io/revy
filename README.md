@@ -19,11 +19,10 @@ https://github.com/rerun-io/revy/assets/2910679/cd096cbe-5e68-4acf-8010-e6c32c55
 
 ## Examples 
 
-|[Breakout](https://github.com/bevyengine/bevy/blob/v0.13.0/examples/games/breakout.rs)|[3D shapes](https://github.com/bevyengine/bevy/blob/v0.13.0/examples/3d/3d_shapes.rs)|[Alien Cake Addict](https://github.com/bevyengine/bevy/blob/v0.13.0/examples/games/alien_cake_addict.rs)|
+|[Breakout](https://github.com/bevyengine/bevy/blob/v0.15.0/examples/games/breakout.rs)|[3D shapes](https://github.com/bevyengine/bevy/blob/v0.15.0/examples/3d/3d_shapes.rs)|[Alien Cake Addict](https://github.com/bevyengine/bevy/blob/v0.15.0/examples/games/alien_cake_addict.rs)|
 | :----------------------------------------------------------------: | :-------------------------------------------------------------: | :--------------------------------------------------------------: |
-| [*Live demo*](https://app.rerun.io/version/0.14.1/index.html?url=https://storage.googleapis.com/rerun-example-datasets/revy/breakout_014_001.rrd) | [*Live demo*](https://app.rerun.io/version/0.14.1/index.html?url=https://storage.googleapis.com/rerun-example-datasets/revy/3d_shapes_014_001.rrd)| [*Live demo*](https://app.rerun.io/version/0.14.1/index.html?url=https://storage.googleapis.com/rerun-example-datasets/revy/alien_014_001.rrd) |
-| <picture> <img src="https://static.rerun.io/revy_breakout_title/a853af41115505212296813a0bef2373b105757b/full.png" alt=""> <source media="(max-width: 480px)" srcset="https://static.rerun.io/revy_breakout_title/a853af41115505212296813a0bef2373b105757b/480w.png"> <source media="(max-width: 768px)" srcset="https://static.rerun.io/revy_breakout_title/a853af41115505212296813a0bef2373b105757b/768w.png"> <source media="(max-width: 1024px)" srcset="https://static.rerun.io/revy_breakout_title/a853af41115505212296813a0bef2373b105757b/1024w.png"> <source media="(max-width: 1200px)" srcset="https://static.rerun.io/revy_breakout_title/a853af41115505212296813a0bef2373b105757b/1200w.png"> </picture> | <picture> <img src="https://static.rerun.io/revy_3dshapes_title/964446d03f1792b60e394e8c495e6fe16273939a/full.png" alt=""> <source media="(max-width: 480px)" srcset="https://static.rerun.io/revy_3dshapes_title/964446d03f1792b60e394e8c495e6fe16273939a/480w.png"> <source media="(max-width: 768px)" srcset="https://static.rerun.io/revy_3dshapes_title/964446d03f1792b60e394e8c495e6fe16273939a/768w.png"> <source media="(max-width: 1024px)" srcset="https://static.rerun.io/revy_3dshapes_title/964446d03f1792b60e394e8c495e6fe16273939a/1024w.png"> <source media="(max-width: 1200px)" srcset="https://static.rerun.io/revy_3dshapes_title/964446d03f1792b60e394e8c495e6fe16273939a/1200w.png"> </picture>  | <picture> <img src="https://static.rerun.io/revy_alien_title/3e4ba4f3cfb728942ecb38ba3e613f3498dda3e2/full.png" alt=""> <source media="(max-width: 480px)" srcset="https://static.rerun.io/revy_alien_title/3e4ba4f3cfb728942ecb38ba3e613f3498dda3e2/480w.png"> <source media="(max-width: 768px)" srcset="https://static.rerun.io/revy_alien_title/3e4ba4f3cfb728942ecb38ba3e613f3498dda3e2/768w.png"> <source media="(max-width: 1024px)" srcset="https://static.rerun.io/revy_alien_title/3e4ba4f3cfb728942ecb38ba3e613f3498dda3e2/1024w.png"> <source media="(max-width: 1200px)" srcset="https://static.rerun.io/revy_alien_title/3e4ba4f3cfb728942ecb38ba3e613f3498dda3e2/1200w.png"> </picture> |
-
+| [*Live demo*](https://rerun.io/viewer/version/0.20.0/?url=https://static.rerun.io/rrd/0.20.0/revy_breakout_3572dc5d61f77dc4fc9675a85c74035a6ee4b020.rrd) | [*Live demo*](https://rerun.io/viewer/version/0.20.0/?url=https://static.rerun.io/rrd/0.20.0/revy_3d_shapes_146ceeb1ab6e9bb69df6e3a39df6243579ed4f1d.rrd) | [*Live demo*](https://rerun.io/viewer/version/0.20.0/?url=https://static.rerun.io/rrd/0.20.0/revy_alien_cake_addict_cadb9e027130bade64c9d9352073fc7240dfc238.rrd) |
+| <picture><img src="https://static.rerun.io/revy_breakout/de578dd0aee06c6ac2260da302b5e02ee4fdcdad/full.png" alt=""><source media="(max-width: 480px)" srcset="https://static.rerun.io/revy_breakout/de578dd0aee06c6ac2260da302b5e02ee4fdcdad/480w.png"><source media="(max-width: 768px)" srcset="https://static.rerun.io/revy_breakout/de578dd0aee06c6ac2260da302b5e02ee4fdcdad/768w.png"><source media="(max-width: 1024px)" srcset="https://static.rerun.io/revy_breakout/de578dd0aee06c6ac2260da302b5e02ee4fdcdad/1024w.png"><source media="(max-width: 1200px)" srcset="https://static.rerun.io/revy_breakout/de578dd0aee06c6ac2260da302b5e02ee4fdcdad/1200w.png"></picture> | <picture><img src="https://static.rerun.io/revy_3d_shapes/28870c94c4ffec871916890d8eaa8661da1b364e/full.png" alt=""><source media="(max-width: 480px)" srcset="https://static.rerun.io/revy_3d_shapes/28870c94c4ffec871916890d8eaa8661da1b364e/480w.png"><source media="(max-width: 768px)" srcset="https://static.rerun.io/revy_3d_shapes/28870c94c4ffec871916890d8eaa8661da1b364e/768w.png"><source media="(max-width: 1024px)" srcset="https://static.rerun.io/revy_3d_shapes/28870c94c4ffec871916890d8eaa8661da1b364e/1024w.png"><source media="(max-width: 1200px)" srcset="https://static.rerun.io/revy_3d_shapes/28870c94c4ffec871916890d8eaa8661da1b364e/1200w.png"></picture> |<picture><img src="https://static.rerun.io/revy_alien_cake_addict/8c6f1828dec207f86a887d1b180e9d92b38b4523/full.png" alt=""><source media="(max-width: 480px)" srcset="https://static.rerun.io/revy_alien_cake_addict/8c6f1828dec207f86a887d1b180e9d92b38b4523/480w.png"><source media="(max-width: 768px)" srcset="https://static.rerun.io/revy_alien_cake_addict/8c6f1828dec207f86a887d1b180e9d92b38b4523/768w.png"><source media="(max-width: 1024px)" srcset="https://static.rerun.io/revy_alien_cake_addict/8c6f1828dec207f86a887d1b180e9d92b38b4523/1024w.png"><source media="(max-width: 1200px)" srcset="https://static.rerun.io/revy_alien_cake_addict/8c6f1828dec207f86a887d1b180e9d92b38b4523/1200w.png"></picture> |
 
 ---
 
@@ -31,11 +30,11 @@ https://github.com/rerun-io/revy/assets/2910679/cd096cbe-5e68-4acf-8010-e6c32c55
 
 ## Usage
 
-1. [Install the Rerun Viewer](https://www.rerun.io/docs/getting-started/installing-viewer) (`0.17`).
+1. [Install the Rerun Viewer](https://www.rerun.io/docs/getting-started/installing-viewer) (`0.20`).
 
 2. Add `revy` to your dependencies:
     ```toml
-    revy = "0.17"  # always matches the rerun version
+    revy = "0.20"  # always matches the rerun version
     ```
 
 3. Initialize the `rerun` plugin:
@@ -47,6 +46,16 @@ https://github.com/rerun-io/revy/assets/2910679/cd096cbe-5e68-4acf-8010-e6c32c55
     ```
     This will start a Rerun Viewer in the background and stream the recording data to it.  
     Check out the [`RecordingStreamBuilder`](https://docs.rs/rerun/latest/rerun/struct.RecordingStreamBuilder.html) docs for other options (saving to file, connecting to a remote viewer, etc).
+
+## Examples
+
+This repository comes with a number of pre-injected Bevy examples:
+
+```shell
+cargo run --example breakout
+cargo run --example alien_cake_addict
+```
+
 
 ## Custom loggers
 
@@ -89,3 +98,4 @@ You can also register your own custom loggers by inserting a `RerunComponentLogg
 | [0.13](https://github.com/bevyengine/bevy/releases/tag/v0.13.0)  | [0.15](https://github.com/rerun-io/revy/releases/tag/0.15.0)  | [0.15](https://github.com/rerun-io/rerun/releases/tag/0.15.0)  |
 | [0.13](https://github.com/bevyengine/bevy/releases/tag/v0.13.0)  | [0.16](https://github.com/rerun-io/revy/releases/tag/0.16.0)  | [0.16](https://github.com/rerun-io/rerun/releases/tag/0.16.0)  |
 | [0.14](https://github.com/bevyengine/bevy/releases/tag/v0.14.0)  | [0.17](https://github.com/rerun-io/revy/releases/tag/0.17.0)  | [0.17](https://github.com/rerun-io/rerun/releases/tag/0.17.0)  |
+| [0.15](https://github.com/bevyengine/bevy/releases/tag/v0.15.0)  | [0.20](https://github.com/rerun-io/revy/releases/tag/0.20.0)  | [0.20](https://github.com/rerun-io/rerun/releases/tag/0.20.0)  |

@@ -170,8 +170,9 @@ fn component_to_ron(
                 // Safety: the type registry cannot be wrong, surely
                 .map(|ptr| unsafe { reflect_from_ptr.as_reflect(ptr) });
 
-            reflected.and_then(|reflected| {
-                let serializer = ReflectSerializer::new(reflected, &type_registry);
+            reflected.ok().and_then(|reflected| {
+                let serializer =
+                    ReflectSerializer::new(reflected.as_partial_reflect(), &type_registry);
                 ron::ser::to_string_pretty(&serializer, ron::ser::PrettyConfig::default()).ok()
             })
         })
@@ -192,26 +193,14 @@ use rerun::external::{arrow2, re_types_core};
 pub struct Aliased<C: rerun::LoggableBatch> {
     name: rerun::ComponentName,
     data: C,
-
-    field: arrow2::datatypes::Field,
 }
 
 impl<C: rerun::LoggableBatch> Aliased<C> {
     pub fn new(name: impl Into<rerun::ComponentName>, data: impl Into<C>) -> Self {
-        let name = name.into();
-        let data = data.into();
-
-        // TODO(cmc): this horror should at least be cached... which is true of the code we
-        // generate in the real SDK too
-        let mut field = data.arrow_field();
-        field.name = name.to_string();
-        field.data_type = arrow2::datatypes::DataType::Extension(
-            name.to_string(),
-            Arc::new(field.data_type.to_logical_type().clone()),
-            None,
-        );
-
-        Self { name, data, field }
+        Self {
+            name: name.into(),
+            data: data.into(),
+        }
     }
 }
 
@@ -231,16 +220,6 @@ impl<C: rerun::LoggableBatch> rerun::LoggableBatch for Aliased<C> {
     }
 
     #[inline]
-    fn num_instances(&self) -> usize {
-        1
-    }
-
-    #[inline]
-    fn arrow_field(&self) -> arrow2::datatypes::Field {
-        self.field.clone()
-    }
-
-    #[inline]
     fn to_arrow(&self) -> re_types_core::SerializationResult<Box<dyn arrow2::array::Array>> {
         self.data.to_arrow()
     }
@@ -254,7 +233,7 @@ impl<C: rerun::LoggableBatch> rerun::ComponentBatch for Aliased<C> {}
 
 /// Helper to merge any number of [`rerun::AsComponents`].
 #[allow(dead_code)]
-pub struct ManyAsComponents(Vec<Box<dyn rerun::AsComponents>>);
+pub struct ManyAsComponents(pub Vec<Box<dyn rerun::AsComponents>>);
 
 impl rerun::AsComponents for ManyAsComponents {
     #[inline]
@@ -262,24 +241,6 @@ impl rerun::AsComponents for ManyAsComponents {
         self.0
             .iter()
             .flat_map(|data| data.as_component_batches())
-            .collect()
-    }
-}
-
-/// Helper to merge two [`rerun::AsComponents`] without extra allocations.
-pub struct TwoAsComponents<T1, T2>(T1, T2);
-
-impl<T1, T2> rerun::AsComponents for TwoAsComponents<T1, T2>
-where
-    T1: rerun::AsComponents,
-    T2: rerun::AsComponents,
-{
-    #[inline]
-    fn as_component_batches(&self) -> Vec<rerun::MaybeOwnedComponentBatch<'_>> {
-        self.0
-            .as_component_batches()
-            .into_iter()
-            .chain(self.1.as_component_batches())
             .collect()
     }
 }

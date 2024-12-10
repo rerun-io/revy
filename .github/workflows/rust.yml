@@ -17,7 +17,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: default
-          toolchain: 1.80.0
+          toolchain: 1.82.0
           override: true
 
       - name: Install packages (Linux)
@@ -101,9 +101,9 @@ jobs:
   cargo-deny:
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v3
-    - uses: EmbarkStudios/cargo-deny-action@v1
-      with:
-        rust-version: "1.80.0"
-        log-level: warn
-        command: check
+      - uses: actions/checkout@v3
+      - uses: EmbarkStudios/cargo-deny-action@v1
+        with:
+          rust-version: "1.82.0"
+          log-level: warn
+          command: check
