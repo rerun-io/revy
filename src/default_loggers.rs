@@ -158,7 +158,7 @@ fn bevy_mesh<'w>(
                     .and_then(|handle| world.resource::<Assets<Image>>().get(handle))
                     .and_then(ToRerun::to_rerun)
                 {
-                    mesh = mesh.with_albedo_texture(image_format, image_data)
+                    mesh = mesh.with_albedo_texture(image_format, image_data);
                 }
             }
             mesh

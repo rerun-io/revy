@@ -58,7 +58,7 @@ impl ToRerun<rerun::Transform3D> for Transform {
             rerun::Scale3D::from(self.scale.to_rerun()),
         )
         // Don't show axis - this is quite annoying in Rerun 0.20 otherwise.
-        .with_axis_length(0.0)
+        // .with_axis_length(0.0)
     }
 }
 impl ToRerun<rerun::Transform3D> for GlobalTransform {
@@ -185,7 +185,7 @@ impl
         };
         // TODO(wumpf): doesn't distinguish between norm/non-norm and srgb/non-srgb.
 
-        let width_height = [self.width() as _, self.height() as _];
+        let width_height = [self.width(), self.height()];
 
         color_model.map(|_| {
             (
