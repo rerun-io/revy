@@ -15,18 +15,24 @@ Revy works by snapshotting diffs of the Bevy database every frame that are then 
 This allows you to inspect and visualize the state of the engine at any point in time, either in real-time or after the fact.  
 These recordings can then be shared to be replayed or e.g. attached to bug reports.
 
+<!-- NOTE: This one is for rendering on Github -->
 https://github.com/rerun-io/revy/assets/2910679/cd096cbe-5e68-4acf-8010-e6c32c5568dc
+
+<!-- NOTE: This one is for rendering on docs.rs -->
+<video width="100%" autoplay loop muted controls>
+    <source src="https://github.com/rerun-io/revy/assets/2910679/cd096cbe-5e68-4acf-8010-e6c32c5568dc" type="video/mp4" />
+</video>
 
 ## Examples 
 
-|[Breakout](https://github.com/bevyengine/bevy/blob/v0.15.0/examples/games/breakout.rs)|[3D shapes](https://github.com/bevyengine/bevy/blob/v0.15.0/examples/3d/3d_shapes.rs)|[Alien Cake Addict](https://github.com/bevyengine/bevy/blob/v0.15.0/examples/games/alien_cake_addict.rs)|
+|[Breakout](https://github.com/rerun-io/revy/blob/0.20.0/examples/breakout.rs#L69-L82)|[3D shapes](https://github.com/rerun-io/revy/blob/0.20.0/examples/3d_shapes.rs#L41-L54)|[Alien Cake Addict](https://github.com/rerun-io/revy/blob/0.20.0/examples/alien_cake_addict.rs#L39-L52)|
 | :----------------------------------------------------------------: | :-------------------------------------------------------------: | :--------------------------------------------------------------: |
 | [*Live demo*](https://rerun.io/viewer/version/0.20.0/?url=https://static.rerun.io/rrd/0.20.0/revy_breakout_3572dc5d61f77dc4fc9675a85c74035a6ee4b020.rrd) | [*Live demo*](https://rerun.io/viewer/version/0.20.0/?url=https://static.rerun.io/rrd/0.20.0/revy_3d_shapes_146ceeb1ab6e9bb69df6e3a39df6243579ed4f1d.rrd) | [*Live demo*](https://rerun.io/viewer/version/0.20.0/?url=https://static.rerun.io/rrd/0.20.0/revy_alien_cake_addict_cadb9e027130bade64c9d9352073fc7240dfc238.rrd) |
 | <picture><img src="https://static.rerun.io/revy_breakout/de578dd0aee06c6ac2260da302b5e02ee4fdcdad/full.png" alt=""><source media="(max-width: 480px)" srcset="https://static.rerun.io/revy_breakout/de578dd0aee06c6ac2260da302b5e02ee4fdcdad/480w.png"><source media="(max-width: 768px)" srcset="https://static.rerun.io/revy_breakout/de578dd0aee06c6ac2260da302b5e02ee4fdcdad/768w.png"><source media="(max-width: 1024px)" srcset="https://static.rerun.io/revy_breakout/de578dd0aee06c6ac2260da302b5e02ee4fdcdad/1024w.png"><source media="(max-width: 1200px)" srcset="https://static.rerun.io/revy_breakout/de578dd0aee06c6ac2260da302b5e02ee4fdcdad/1200w.png"></picture> | <picture><img src="https://static.rerun.io/revy_3d_shapes/28870c94c4ffec871916890d8eaa8661da1b364e/full.png" alt=""><source media="(max-width: 480px)" srcset="https://static.rerun.io/revy_3d_shapes/28870c94c4ffec871916890d8eaa8661da1b364e/480w.png"><source media="(max-width: 768px)" srcset="https://static.rerun.io/revy_3d_shapes/28870c94c4ffec871916890d8eaa8661da1b364e/768w.png"><source media="(max-width: 1024px)" srcset="https://static.rerun.io/revy_3d_shapes/28870c94c4ffec871916890d8eaa8661da1b364e/1024w.png"><source media="(max-width: 1200px)" srcset="https://static.rerun.io/revy_3d_shapes/28870c94c4ffec871916890d8eaa8661da1b364e/1200w.png"></picture> |<picture><img src="https://static.rerun.io/revy_alien_cake_addict/8c6f1828dec207f86a887d1b180e9d92b38b4523/full.png" alt=""><source media="(max-width: 480px)" srcset="https://static.rerun.io/revy_alien_cake_addict/8c6f1828dec207f86a887d1b180e9d92b38b4523/480w.png"><source media="(max-width: 768px)" srcset="https://static.rerun.io/revy_alien_cake_addict/8c6f1828dec207f86a887d1b180e9d92b38b4523/768w.png"><source media="(max-width: 1024px)" srcset="https://static.rerun.io/revy_alien_cake_addict/8c6f1828dec207f86a887d1b180e9d92b38b4523/1024w.png"><source media="(max-width: 1200px)" srcset="https://static.rerun.io/revy_alien_cake_addict/8c6f1828dec207f86a887d1b180e9d92b38b4523/1200w.png"></picture> |
 
 ---
 
-:warning: _This is not an official Rerun project. This is a side-experiment meant to explore the possibilities that a tool like Rerun could open when it comes to gamedev. It is not a full-fledged, properly maintained thing -- nor does it aim to be. It's also probably buggy and slow in many ways, and it certainly is full of code abominations :upside_down_face:._ 
+⚠️ _This is not an official Rerun project. This is a side-experiment meant to explore the possibilities that a tool like Rerun could open when it comes to gamedev. It is not a full-fledged, properly maintained thing -- nor does it aim to be. It's also probably buggy and slow in many ways, and it certainly is full of code abominations 🙃._ 
 
 ## Usage
 
