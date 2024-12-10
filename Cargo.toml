@@ -32,15 +32,12 @@ rerun = { version = "0.20", default-features = false, features = [
 ] }
 bevy = { version = "0.15" }
 # bevy = { path = "../../bevyengine/bevy/" }
+# `dynamic_linking` on windows hits error for maximum number of exported symbols on linking.
+# On linux, you may run into libc issues depending on your system.
+# bevy = { path = "../../bevyengine/bevy/", features = ["dynamic_linking"] }
 
 itertools = "0.13"
 ron = "0.8"
-
-
-# `dynamic_linking` on windows hits error for maximum number of exported symbols on linking.
-[target.'cfg(not(windows))'.dev-dependencies]
-bevy = { version = "0.15", features = ["dynamic_linking"] }
-# bevy = { path = "../../bevyengine/bevy/", features = ["dynamic_linking"] }
 
 [dev-dependencies]
 rand = "0.8"
