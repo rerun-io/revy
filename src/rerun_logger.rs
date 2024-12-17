@@ -191,14 +191,14 @@ use rerun::external::{arrow2, re_types_core};
 /// Helper to log any [`rerun::LoggableBatch`] as a [`rerun::Component`] with the specified name.
 #[derive(Debug)]
 pub struct Aliased<C: rerun::LoggableBatch> {
-    name: rerun::ComponentName,
+    descriptor: rerun::ComponentDescriptor,
     data: C,
 }
 
 impl<C: rerun::LoggableBatch> Aliased<C> {
     pub fn new(name: impl Into<rerun::ComponentName>, data: impl Into<C>) -> Self {
         Self {
-            name: name.into(),
+            descriptor: rerun::ComponentDescriptor::new(name.into()),
             data: data.into(),
         }
     }
@@ -206,41 +206,23 @@ impl<C: rerun::LoggableBatch> Aliased<C> {
 
 impl<C: rerun::LoggableBatch> rerun::AsComponents for Aliased<C> {
     #[inline]
-    fn as_component_batches(&self) -> Vec<rerun::MaybeOwnedComponentBatch<'_>> {
-        vec![rerun::MaybeOwnedComponentBatch::Ref(self)]
+    fn as_component_batches(&self) -> Vec<rerun::ComponentBatchCowWithDescriptor<'_>> {
+        vec![rerun::ComponentBatchCowWithDescriptor::new(
+            self as &dyn rerun::ComponentBatch,
+        )]
     }
 }
 
 impl<C: rerun::LoggableBatch> rerun::LoggableBatch for Aliased<C> {
-    type Name = rerun::ComponentName;
-
     #[inline]
-    fn name(&self) -> Self::Name {
-        self.name
-    }
-
-    #[inline]
-    fn to_arrow(&self) -> re_types_core::SerializationResult<Box<dyn arrow2::array::Array>> {
-        self.data.to_arrow()
+    fn to_arrow2(&self) -> re_types_core::SerializationResult<Box<dyn arrow2::array::Array>> {
+        self.data.to_arrow2()
     }
 }
 
-impl<C: rerun::LoggableBatch> rerun::ComponentBatch for Aliased<C> {}
-
-// ---
-
-// TODO(cmc): Rerun should provide tools for this.
-
-/// Helper to merge any number of [`rerun::AsComponents`].
-#[allow(dead_code)]
-pub struct ManyAsComponents(pub Vec<Box<dyn rerun::AsComponents>>);
-
-impl rerun::AsComponents for ManyAsComponents {
+impl<C: rerun::LoggableBatch> rerun::ComponentBatch for Aliased<C> {
     #[inline]
-    fn as_component_batches(&self) -> Vec<rerun::MaybeOwnedComponentBatch<'_>> {
-        self.0
-            .iter()
-            .flat_map(|data| data.as_component_batches())
-            .collect()
+    fn descriptor(&self) -> std::borrow::Cow<'_, rerun::ComponentDescriptor> {
+        std::borrow::Cow::Borrowed(&self.descriptor)
     }
 }
