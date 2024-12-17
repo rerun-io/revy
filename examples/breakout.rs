@@ -17,10 +17,16 @@
 #![allow(clippy::missing_assert_message)]
 #![allow(clippy::disallowed_methods)]
 
+use std::collections::BTreeSet;
+
 use bevy::{
+    ecs::schedule::ScheduleLabel,
     math::bounding::{Aabb2d, BoundingCircle, BoundingVolume, IntersectsVolume},
     prelude::*,
+    utils::{HashMap, HashSet},
 };
+use rerun::external::re_log::ResultExt;
+use revy::RecordingStream;
 
 // These constants are defined in `Transform` units.
 // Using the default 2D camera they correspond 1:1 with screen pixels.
@@ -63,9 +69,19 @@ const WALL_COLOR: Color = Color::srgb(0.8, 0.8, 0.8);
 const TEXT_COLOR: Color = Color::srgb(0.5, 0.5, 1.0);
 const SCORE_COLOR: Color = Color::srgb(1.0, 0.5, 0.5);
 
+#[derive(Resource)]
+struct Kek {
+    rec: RecordingStream,
+}
+
 fn main() {
-    App::new()
-        .add_plugins(DefaultPlugins)
+    let mut app = App::new();
+
+    let rec = revy::RecordingStreamBuilder::new("breakout")
+        .spawn()
+        .unwrap();
+
+    app.add_plugins(DefaultPlugins)
         // ==== Instantiating the Rerun plugin ===========================================
         //
         // This is the only modification that was applied to this example.
@@ -74,10 +90,11 @@ fn main() {
         // Check out the `RecordingStreamBuilder` (<https://docs.rs/rerun/latest/rerun/struct.RecordingStreamBuilder.html>)
         // docs for other options (saving to file, connecting to a remote viewer, etc).
         .add_plugins({
-            let rec = revy::RecordingStreamBuilder::new("breakout")
-                .spawn()
-                .unwrap();
-            revy::RerunPlugin { rec }
+            // TODO
+            // let rec = revy::RecordingStreamBuilder::new("breakout")
+            //     .spawn()
+            //     .unwrap();
+            revy::RerunPlugin { rec: rec.clone() }
         })
         // ===============================================================================
         .insert_resource(Score(0))
@@ -97,8 +114,128 @@ fn main() {
                 // `chain`ing systems together runs them in order
                 .chain(),
         )
-        .add_systems(Update, update_scoreboard)
-        .run();
+        .insert_resource(Kek { rec })
+        .add_systems(Startup, xxx)
+        .add_systems(Update, update_scoreboard);
+
+    app.run();
+}
+
+#[derive(Default)]
+struct State {
+    labels: HashSet<Box<dyn ScheduleLabel>>,
+}
+
+fn xxx(mut state: Local<State>, schedules: Res<Schedules>, rec: Res<Kek>) {
+    for (label, schedule) in schedules.iter() {
+        if state.labels.insert(label.dyn_clone()) {
+            let graph = schedule.graph();
+
+            // TODO(cmc): For this to actually be good, we need to split graphs per sets, and then
+            // render each set indepdentl
+            rec.rec
+                .log_static(
+                    format!("schedules/{label:?}"),
+                    &rerun::GraphNodes::new(graph.hierarchy().graph().nodes().filter_map(|node| {
+                        let i = match node {
+                            bevy::ecs::schedule::NodeId::System(i)
+                            | bevy::ecs::schedule::NodeId::Set(i) => i,
+                        };
+                        graph
+                            .get_set_at(node)
+                            .map(|_| format!("set#{i}"))
+                            .or_else(|| graph.get_system_at(node).map(|_| format!("system#{i}")))
+                    }))
+                    .with_colors(graph.hierarchy().graph().nodes().filter_map(|node| {
+                        graph
+                            .get_set_at(node)
+                            .map(|set| {
+                                if set.is_anonymous()
+                                    || format!("{set:?}").starts_with("SystemTypeSet")
+                                {
+                                    rerun::Color::new(0xFF00FFFF)
+                                } else {
+                                    rerun::Color::new(0xFFFF00FF)
+                                }
+                            })
+                            .or_else(|| {
+                                graph
+                                    .get_system_at(node)
+                                    .map(|_| rerun::Color::new(0xFFFFFFFF))
+                            })
+                    }))
+                    .with_labels(
+                        graph.hierarchy().graph().nodes().filter_map(|node| {
+                            let i = match node {
+                                bevy::ecs::schedule::NodeId::System(i)
+                                | bevy::ecs::schedule::NodeId::Set(i) => i,
+                            };
+                            graph
+                                .get_set_at(node)
+                                .map(|set| {
+                                    let mut label = if set.is_anonymous() {
+                                        format!("set#{i}")
+                                    } else {
+                                        format!("{set:?}")
+                                    };
+
+                                    // TODO: should be graphemes
+                                    if label.len() > 64 {
+                                        label.truncate(63); // unreadable otherwise
+                                        label.push('…');
+                                    }
+
+                                    label
+                                })
+                                .or_else(|| {
+                                    graph
+                                        .get_system_at(node)
+                                        .map(|system| system.name().into_owned())
+                                })
+                        }),
+                    ),
+                )
+                .ok_or_log_error();
+
+            rec.rec
+                .log_static(
+                    format!("schedules/{label:?}"),
+                    &rerun::GraphEdges::new(
+                        schedule
+                            .graph()
+                            .hierarchy()
+                            .graph()
+                            .all_edges()
+                            .chain(schedule.graph().dependency().graph().all_edges())
+                            .filter_map(|(a, b, _)| {
+                                let ai = match a {
+                                    bevy::ecs::schedule::NodeId::System(i)
+                                    | bevy::ecs::schedule::NodeId::Set(i) => i,
+                                };
+                                let bi = match b {
+                                    bevy::ecs::schedule::NodeId::System(i)
+                                    | bevy::ecs::schedule::NodeId::Set(i) => i,
+                                };
+
+                                let a = graph.get_set_at(a).map(|_| format!("set#{ai}")).or_else(
+                                    || graph.get_system_at(a).map(|_| format!("system#{ai}")),
+                                );
+                                let b = graph.get_set_at(b).map(|_| format!("set#{bi}")).or_else(
+                                    || graph.get_system_at(b).map(|_| format!("system#{bi}")),
+                                );
+
+                                let (Some(a), Some(b)) = (a, b) else {
+                                    return None;
+                                };
+
+                                Some((a, b))
+                            }),
+                    )
+                    .with_directed_edges(),
+                )
+                .ok_or_log_error();
+        }
+    }
 }
 
 #[derive(Component)]
