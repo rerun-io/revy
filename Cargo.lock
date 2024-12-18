@@ -5351,7 +5351,7 @@ dependencies = [
 
 [[package]]
 name = "revy"
-version = "0.20.0"
+version = "0.21.0"
 dependencies = [
  "bevy",
  "itertools 0.13.0",
