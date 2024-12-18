@@ -5,7 +5,7 @@ use bevy::{
     utils::HashMap,
 };
 
-use crate::{compute_entity_path, rerun_logger::ManyAsComponents, Aliased, RerunLogger, ToRerun};
+use crate::{compute_entity_path, Aliased, RerunLogger, ToRerun};
 
 // ---
 
@@ -108,11 +108,11 @@ fn bevy_global_transform<'w>(
     // TODO(cmc): once again the DataUi does the wrong thing... we really need to
     // go typeless.
     let data = entity.get::<GlobalTransform>().map(|transform| {
-        Box::new(ManyAsComponents(vec![
+        Box::new(vec![
             Box::new(Aliased::<rerun::datatypes::Vec3D>::new(
                 "GlobalTransform3D.translation",
                 transform.translation().to_rerun(),
-            )),
+            )) as Box<dyn rerun::AsComponents>,
             Box::new(Aliased::<rerun::datatypes::Quaternion>::new(
                 "GlobalTransform3D.rotation",
                 transform.rotation().to_rerun(),
@@ -121,7 +121,7 @@ fn bevy_global_transform<'w>(
                 "GlobalTransform3D.scale",
                 transform.scale().to_rerun(),
             )),
-        ])) as _
+        ]) as _
     });
 
     (suffix, data)

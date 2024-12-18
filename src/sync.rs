@@ -225,7 +225,10 @@ fn sync_components(
 
             for batches in &component_batches {
                 for batch in batches {
-                    current_components.insert(batch.name(), entity_path.clone());
+                    current_components.insert(
+                        rerun::ComponentBatch::descriptor(batch).into_owned(),
+                        entity_path.clone(),
+                    );
                 }
             }
 
@@ -235,7 +238,7 @@ fn sync_components(
                 component_batches
                     .iter()
                     .flatten()
-                    .map(|batch| batch.as_ref()),
+                    .map(|batch| batch as &dyn rerun::ComponentBatch),
             )
             .ok_or_log_error();
         }
@@ -245,8 +248,8 @@ fn sync_components(
             .get::<CurrentComponents>()
             .unwrap_or(&empty_components);
 
-        for (component_name, entity_path) in last_components.iter() {
-            if !current_components.contains_key(component_name) {
+        for (component_desc, entity_path) in last_components.iter() {
+            if !current_components.contains_key(component_desc) {
                 rec.log(entity_path.clone(), &rerun::Clear::flat())
                     .ok_or_log_error();
             }
@@ -323,4 +326,4 @@ struct CurrentHashes(HashMap<ComponentId, u64>);
 
 /// Keeps track of all components on an entity in order to `Clear` removed ones.
 #[derive(Component, Debug, Clone, Default, Deref, DerefMut)]
-struct CurrentComponents(HashMap<rerun::ComponentName, rerun::EntityPath>);
+struct CurrentComponents(HashMap<rerun::ComponentDescriptor, rerun::EntityPath>);
