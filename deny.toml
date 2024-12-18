@@ -48,6 +48,7 @@ skip-tree = [
   "event-listener",
   "fixedbitset",     # Bevy has internally several versions
   "glam",            # Rerun is behind versus Bevy
+  "indexmap",
   "itertools",
   "libloading",
   "nix",
@@ -56,9 +57,10 @@ skip-tree = [
   "regex-automata",
   "regex-syntax",
   "sysinfo",         # rerun depends on 0.30, bevy on 0.32
+  "tower",
   "ttf-parser",      # cosmic-text 0.12.1 depends on one version directly and on another one via fontdb 0.16.2
-  "windows-sys",
   "windows",
+  "windows-sys",
 ]
 
 
