@@ -1,4 +1,5 @@
 #![allow(rustdoc::bare_urls)]
+#![allow(clippy::doc_markdown)]
 #![doc = include_str!("../README.md")]
 
 use bevy::prelude::*;
