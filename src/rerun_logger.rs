@@ -138,13 +138,29 @@ pub fn get_component_logger<'a>(
         entity: EntityRef<'_>,
         component: &ComponentInfo,
     ) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>) {
-        let name = component.name();
+        let component_type_name = component.name();
+        let parts = component_type_name.split("::").collect::<Vec<_>>();
+        let (archetype_name, field_name): (String, String) = if parts.len() >= 2 {
+            (
+                parts[0..parts.len() - 1].join("."),
+                parts.last().unwrap().to_string(),
+            )
+        } else {
+            ("bevy".to_owned(), component_type_name.replace("::", "."))
+        };
+
+        let descriptor = rerun::ComponentDescriptor {
+            archetype: Some(archetype_name.clone().into()),
+            component: format!("{archetype_name}:{field_name}").into(),
+            component_type: Some(component_type_name.into()),
+        };
+
         let body = component_to_ron(world, entity, component)
             .unwrap_or_else(|| "<missing reflection metadata>".into());
         (
             None,
             rerun::components::Text(body.into())
-                .serialized(rerun::ComponentDescriptor::partial(name.replace("::", ".")))
+                .serialized(descriptor)
                 .into_iter()
                 .collect(),
         )

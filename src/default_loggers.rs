@@ -108,8 +108,6 @@ fn bevy_global_transform<'w>(
     _component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>) {
     let suffix = None;
-    // TODO(cmc): once again the DataUi does the wrong thing... we really need to
-    // go typeless.
     let data = entity
         .get::<GlobalTransform>()
         .into_iter()
@@ -119,10 +117,16 @@ fn bevy_global_transform<'w>(
                 .as_serialized_batches()
                 .into_iter()
                 .map(|batch| {
-                    let name = batch.descriptor.component;
-                    batch.with_descriptor_override(rerun::ComponentDescriptor::partial(format!(
-                        "{name}Global"
-                    )))
+                    let archetype_name = "bevy.GlobalTransform3D";
+                    let component = batch.descriptor.component;
+                    let component = component.as_str().replace("Transform3D", archetype_name);
+
+                    let descriptor = rerun::ComponentDescriptor {
+                        archetype: Some(archetype_name.into()),
+                        component: component.into(),
+                        component_type: batch.descriptor.component_type.clone(),
+                    };
+                    batch.with_descriptor_override(descriptor)
                 })
         })
         .collect();
