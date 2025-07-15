@@ -107,3 +107,4 @@ You can also register your own custom loggers by inserting a `RerunComponentLogg
 | [0.15](https://github.com/bevyengine/bevy/releases/tag/v0.15.0)  | [0.20](https://github.com/rerun-io/revy/releases/tag/0.20.0)  | [0.20](https://github.com/rerun-io/rerun/releases/tag/0.20.0)  |
 | [0.15](https://github.com/bevyengine/bevy/releases/tag/v0.15.0)  | [0.21](https://github.com/rerun-io/revy/releases/tag/0.21.0)  | [0.21](https://github.com/rerun-io/rerun/releases/tag/0.21.0)  |
 | [0.15](https://github.com/bevyengine/bevy/releases/tag/v0.15.0)  | [0.22](https://github.com/rerun-io/revy/releases/tag/0.22.0)  | [0.22](https://github.com/rerun-io/rerun/releases/tag/0.22.0)  |
+| [0.15](https://github.com/bevyengine/bevy/releases/tag/v0.15.0)  | [0.23](https://github.com/rerun-io/revy/releases/tag/0.23.0)  | [0.23](https://github.com/rerun-io/rerun/releases/tag/0.23.0)  |

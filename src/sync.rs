@@ -85,7 +85,7 @@ fn set_recording_time(world: &World, rec: &rerun::RecordingStream) {
     let tick = world.resource::<FrameCount>();
     let frame = tick.0;
 
-    rec.set_time_seconds("sim_time", elapsed);
+    rec.set_duration_secs("sim_time", elapsed);
     // TODO(cmc): i'll log it once i can tell the blueprint to default to `sim_time`.
     // rec.set_time_sequence("sim_frame", frame);
     _ = frame;
