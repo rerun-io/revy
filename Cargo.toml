@@ -25,17 +25,11 @@ targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
 
 
 [dependencies]
-rerun = { path = "/home/cmc/dev/rerun-io/rerun/crates/top/rerun", default-features = false, features = [
+rerun = { version = "0.22.0", default-features = false, features = [
     "sdk",
     "image",
     "glam",
 ] }
-# TODO
-# rerun = { version = "0.22.0", default-features = false, features = [
-#     "sdk",
-#     "image",
-#     "glam",
-# ] }
 bevy = { version = "0.15" }
 # bevy = { path = "../../bevyengine/bevy/" }
 # `dynamic_linking` on windows hits error for maximum number of exported symbols on linking.
