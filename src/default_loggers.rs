@@ -124,7 +124,7 @@ fn bevy_global_transform<'w>(
                     let descriptor = rerun::ComponentDescriptor {
                         archetype: Some(archetype_name.into()),
                         component: component.into(),
-                        component_type: batch.descriptor.component_type.clone(),
+                        component_type: batch.descriptor.component_type,
                     };
                     batch.with_descriptor_override(descriptor)
                 })
