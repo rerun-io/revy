@@ -4,9 +4,9 @@ use bevy::{
     render::{mesh::PlaneMeshBuilder, primitives::Aabb},
 };
 
-use rerun::{external::nohash_hasher::IntMap, AsComponents as _, ComponentBatch};
+use rerun::{AsComponents as _, ComponentBatch, external::nohash_hasher::IntMap};
 
-use crate::{compute_entity_path, RerunLogger, ToRerun};
+use crate::{RerunLogger, ToRerun, compute_entity_path};
 
 // ---
 
@@ -16,7 +16,7 @@ use crate::{compute_entity_path, RerunLogger, ToRerun};
 ///
 /// Public so end users can easily inspect what is configured by default.
 #[derive(Resource, Deref, DerefMut, Clone, Debug)]
-pub struct DefaultRerunComponentLoggers(IntMap<rerun::ComponentName, Option<RerunLogger>>);
+pub struct DefaultRerunComponentLoggers(IntMap<rerun::ComponentType, Option<RerunLogger>>);
 
 // TODO(cmc): DataUi being typed makes aliases uninspectable :(
 #[allow(clippy::too_many_lines)]
@@ -119,8 +119,8 @@ fn bevy_global_transform<'w>(
                 .as_serialized_batches()
                 .into_iter()
                 .map(|batch| {
-                    let name = batch.descriptor.component_name;
-                    batch.with_descriptor_override(rerun::ComponentDescriptor::new(format!(
+                    let name = batch.descriptor.component;
+                    batch.with_descriptor_override(rerun::ComponentDescriptor::partial(format!(
                         "{name}Global"
                     )))
                 })
@@ -329,10 +329,7 @@ fn bevy_parent<'w>(
         .and_then(|parent| {
             let parent_entity_path = compute_entity_path(world, all_entities, parent.get());
             rerun::components::EntityPath(parent_entity_path.to_string().into())
-                .serialized()
-                .map(|batch| {
-                    batch.with_descriptor_override(rerun::ComponentDescriptor::new("Parent"))
-                })
+                .serialized(rerun::ComponentDescriptor::partial("Parent"))
         })
         .into_iter()
         .collect();
@@ -359,9 +356,7 @@ fn bevy_children<'w>(
                     )
                 })
                 .collect::<Vec<_>>();
-            children.serialized().map(|batch| {
-                batch.with_descriptor_override(rerun::ComponentDescriptor::new("Children"))
-            })
+            children.serialized(rerun::ComponentDescriptor::partial("Children"))
         })
         .into_iter()
         .collect();
