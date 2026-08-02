@@ -123,7 +123,8 @@ fn bevy_global_transform<'w>(
 
                     let descriptor = rerun::ComponentDescriptor {
                         archetype: Some(archetype_name.into()),
-                        component: component.into(),
+                        component: rerun::ComponentIdentifier::try_new(component)
+                            .expect("component name is never empty"),
                         component_type: batch.descriptor.component_type,
                     };
                     batch.with_descriptor_override(descriptor)

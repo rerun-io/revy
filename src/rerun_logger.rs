@@ -112,7 +112,8 @@ pub fn get_component_logger<'a>(
     loggers: Option<&'a RerunComponentLoggers>,
     default_loggers: &'a DefaultRerunComponentLoggers,
 ) -> Option<&'a RerunLogger> {
-    let component_name = rerun::ComponentType::from(component.name());
+    let component_name =
+        rerun::ComponentType::try_new(component.name()).expect("component name is never empty");
 
     if let Some(logger) = loggers.and_then(|loggers| {
         loggers
@@ -150,9 +151,18 @@ pub fn get_component_logger<'a>(
         };
 
         let descriptor = rerun::ComponentDescriptor {
-            archetype: Some(archetype_name.clone().into()),
-            component: format!("{archetype_name}:{field_name}").into(),
-            component_type: Some(component_type_name.into()),
+            archetype: Some(
+                rerun::ArchetypeName::try_new(archetype_name.clone())
+                    .expect("archetype name is never empty"),
+            ),
+            component: rerun::ComponentIdentifier::try_new(format!(
+                "{archetype_name}:{field_name}"
+            ))
+            .expect("component name is never empty"),
+            component_type: Some(
+                rerun::ComponentType::try_new(component_type_name)
+                    .expect("component type name is never empty"),
+            ),
         };
 
         let body = component_to_ron(world, entity, component)

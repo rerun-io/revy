@@ -52,13 +52,13 @@ impl ToRerun<rerun::Mat3x3> for Mat3 {
 impl ToRerun<rerun::Transform3D> for Transform {
     #[inline]
     fn to_rerun(&self) -> rerun::Transform3D {
+        // NOTE: axes are no longer drawn by default (they'd need a separate `TransformAxes3D`
+        // archetype logged alongside this one), so there's nothing to opt out of here anymore.
         rerun::Transform3D::from_translation_rotation_scale(
             self.translation.to_rerun(),
             self.rotation.to_rerun(),
             rerun::Scale3D::from(self.scale.to_rerun()),
         )
-        // Don't show axis - this is quite annoying in Rerun 0.20 otherwise.
-        .with_axis_length(0.0)
     }
 }
 impl ToRerun<rerun::Transform3D> for GlobalTransform {
