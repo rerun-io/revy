@@ -68,6 +68,12 @@ impl Default for DefaultRerunComponentLoggers {
         );
 
         loggers.insert("revy::entity_path::RerunEntityPath".into(), None);
+        // `ObservedBy` is bevy-internal bookkeeping auto-attached to any entity that has
+        // observers watching it (e.g. via lifecycle hooks) -- not meaningful game data.
+        loggers.insert(
+            "bevy_ecs::observer::distributed_storage::ObservedBy".into(),
+            None,
+        );
 
         Self(loggers)
     }
