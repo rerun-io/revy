@@ -2,9 +2,9 @@ use std::sync::Arc;
 
 use bevy::{
     ecs::component::ComponentInfo,
+    platform::collections::HashMap,
     prelude::*,
     reflect::{ReflectFromPtr, serde::ReflectSerializer},
-    utils::HashMap,
 };
 use rerun::ComponentBatch;
 
@@ -22,7 +22,7 @@ pub trait RerunLoggerFn:
     + Sync
     + for<'w> Fn(
         &'w World,
-        &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+        &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
         EntityRef<'_>,
         &'w ComponentInfo,
     ) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>)
@@ -34,7 +34,7 @@ impl<F> RerunLoggerFn for F where
         + Sync
         + for<'w> Fn(
             &'w World,
-            &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+            &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
             EntityRef<'_>,
             &'w ComponentInfo,
         ) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>)
@@ -113,7 +113,7 @@ pub fn get_component_logger<'a>(
     default_loggers: &'a DefaultRerunComponentLoggers,
 ) -> Option<&'a RerunLogger> {
     let component_name =
-        rerun::ComponentType::try_new(component.name()).expect("component name is never empty");
+        rerun::ComponentType::try_new(&*component.name()).expect("component name is never empty");
 
     if let Some(logger) = loggers.and_then(|loggers| {
         loggers
@@ -135,7 +135,7 @@ pub fn get_component_logger<'a>(
     #[allow(clippy::unnecessary_wraps)]
     fn log_ignored_component(
         world: &World,
-        _all_entities: &QueryState<(Entity, Option<&Parent>, Option<&Name>)>,
+        _all_entities: &QueryState<(Entity, Option<&ChildOf>, Option<&Name>)>,
         entity: EntityRef<'_>,
         component: &ComponentInfo,
     ) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>) {
@@ -160,7 +160,7 @@ pub fn get_component_logger<'a>(
             ))
             .expect("component name is never empty"),
             component_type: Some(
-                rerun::ComponentType::try_new(component_type_name)
+                rerun::ComponentType::try_new(&*component_type_name)
                     .expect("component type name is never empty"),
             ),
         };

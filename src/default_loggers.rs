@@ -1,7 +1,5 @@
 use bevy::{
-    ecs::component::ComponentInfo,
-    prelude::*,
-    render::{mesh::PlaneMeshBuilder, primitives::Aabb},
+    camera::primitives::Aabb, ecs::component::ComponentInfo, mesh::PlaneMeshBuilder, prelude::*,
 };
 
 use rerun::{AsComponents as _, ComponentBatch, external::nohash_hasher::IntMap};
@@ -34,25 +32,20 @@ impl Default for DefaultRerunComponentLoggers {
         );
 
         loggers.insert(
-            "bevy_render::mesh::components::Mesh2d".into(),
+            "bevy_mesh::components::Mesh2d".into(),
             Some(RerunLogger::new_static(&bevy_mesh2d)),
         );
         loggers.insert(
-            "bevy_render::mesh::components::Mesh3d".into(),
+            "bevy_mesh::components::Mesh3d".into(),
             Some(RerunLogger::new_static(&bevy_mesh3d)),
         );
 
+        // NOTE: `OrthographicProjection`/`PerspectiveProjection` are no longer components in
+        // their own right as of bevy 0.17 (only the `Projection` enum wrapping them is), so
+        // there's nothing left to register loggers for under their own component names.
         loggers.insert(
-            "bevy_render::camera::projection::Projection".into(),
+            "bevy_camera::projection::Projection".into(),
             Some(RerunLogger::new_static(&bevy_projection)),
-        );
-        loggers.insert(
-            "bevy_render::camera::projection::OrthographicProjection".into(),
-            Some(RerunLogger::new_static(&bevy_projection_orthographic)),
-        );
-        loggers.insert(
-            "bevy_render::camera::projection::PerspectiveProjection".into(),
-            Some(RerunLogger::new_static(&bevy_projection_perspective)),
         );
 
         loggers.insert(
@@ -61,16 +54,16 @@ impl Default for DefaultRerunComponentLoggers {
         );
 
         loggers.insert(
-            "bevy_render::primitives::Aabb".into(),
+            "bevy_camera::primitives::Aabb".into(),
             Some(RerunLogger::new_static(&bevy_aabb)),
         );
 
         loggers.insert(
-            "bevy_hierarchy::components::parent::Parent".into(),
+            "bevy_ecs::hierarchy::ChildOf".into(),
             Some(RerunLogger::new_static(&bevy_parent)),
         );
         loggers.insert(
-            "bevy_hierarchy::components::children::Children".into(),
+            "bevy_ecs::hierarchy::Children".into(),
             Some(RerunLogger::new_static(&bevy_children)),
         );
 
@@ -87,7 +80,7 @@ impl Default for DefaultRerunComponentLoggers {
 
 fn bevy_transform<'w>(
     _world: &'w World,
-    _all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    _all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     _component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>) {
@@ -103,7 +96,7 @@ fn bevy_transform<'w>(
 
 fn bevy_global_transform<'w>(
     _world: &'w World,
-    _all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    _all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     _component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>) {
@@ -137,7 +130,7 @@ fn bevy_global_transform<'w>(
 
 fn bevy_mesh<'w>(
     world: &'w World,
-    _all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    _all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     _component: &'w ComponentInfo,
     handle: Option<&Handle<Mesh>>,
@@ -177,7 +170,7 @@ fn bevy_mesh<'w>(
 
 fn bevy_mesh2d<'w>(
     world: &'w World,
-    all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>) {
@@ -194,7 +187,7 @@ fn bevy_mesh2d<'w>(
 
 fn bevy_mesh3d<'w>(
     world: &'w World,
-    all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>) {
@@ -211,7 +204,7 @@ fn bevy_mesh3d<'w>(
 
 fn bevy_camera<'w, C: Component + ToRerun<rerun::Pinhole>>(
     _world: &'w World,
-    _all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    _all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     _component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>) {
@@ -227,35 +220,17 @@ fn bevy_camera<'w, C: Component + ToRerun<rerun::Pinhole>>(
 
 fn bevy_projection<'w>(
     world: &'w World,
-    all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>) {
     bevy_camera::<Projection>(world, all_entities, entity, component)
 }
 
-fn bevy_projection_orthographic<'w>(
-    world: &'w World,
-    all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
-    entity: EntityRef<'_>,
-    component: &'w ComponentInfo,
-) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>) {
-    bevy_camera::<OrthographicProjection>(world, all_entities, entity, component)
-}
-
-fn bevy_projection_perspective<'w>(
-    world: &'w World,
-    all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
-    entity: EntityRef<'_>,
-    component: &'w ComponentInfo,
-) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>) {
-    bevy_camera::<PerspectiveProjection>(world, all_entities, entity, component)
-}
-
 // TODO(cmc): check if sprite has custom sizes etc
 fn bevy_sprite<'w>(
     world: &'w World,
-    _all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    _all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     _component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>) {
@@ -286,7 +261,7 @@ fn bevy_sprite<'w>(
 
 fn bevy_aabb<'w>(
     world: &'w World,
-    _all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    _all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     _component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>) {
@@ -324,15 +299,15 @@ fn bevy_aabb<'w>(
 
 fn bevy_parent<'w>(
     world: &'w World,
-    all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     _component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>) {
     let suffix = None;
     let batches = entity
-        .get::<Parent>()
+        .get::<ChildOf>()
         .and_then(|parent| {
-            let parent_entity_path = compute_entity_path(world, all_entities, parent.get());
+            let parent_entity_path = compute_entity_path(world, all_entities, parent.parent());
             rerun::components::EntityPath(parent_entity_path.to_string().into())
                 .serialized(rerun::ComponentDescriptor::partial("Parent"))
         })
@@ -343,7 +318,7 @@ fn bevy_parent<'w>(
 
 fn bevy_children<'w>(
     world: &'w World,
-    all_entities: &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+    all_entities: &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
     entity: EntityRef<'_>,
     _component: &'w ComponentInfo,
 ) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>) {
@@ -355,7 +330,7 @@ fn bevy_children<'w>(
                 .iter()
                 .map(|entity_id| {
                     rerun::components::EntityPath(
-                        compute_entity_path(world, all_entities, *entity_id)
+                        compute_entity_path(world, all_entities, entity_id)
                             .to_string()
                             .into(),
                     )

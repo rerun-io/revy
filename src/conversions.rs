@@ -1,4 +1,4 @@
-use bevy::{math::Vec3A, prelude::*, render::mesh::VertexAttributeValues};
+use bevy::{math::Vec3A, mesh::VertexAttributeValues, prelude::*};
 use itertools::Itertools;
 
 // ---
@@ -187,6 +187,10 @@ impl
 
         let width_height = [self.width(), self.height()];
 
+        // NOTE: `data` is `None` for images whose data lives only in the render world (e.g.
+        // render targets) -- nothing to log in that case.
+        let data = self.data.clone()?;
+
         color_model.map(|_| {
             (
                 rerun::datatypes::ImageFormat {
@@ -197,7 +201,7 @@ impl
                     channel_datatype,
                 }
                 .into(),
-                rerun::components::ImageBuffer(self.data.clone().into()),
+                rerun::components::ImageBuffer(data.into()),
             )
         })
     }
@@ -233,6 +237,9 @@ impl ToRerun<rerun::Pinhole> for Projection {
         match self {
             Projection::Perspective(p) => p.to_rerun(),
             Projection::Orthographic(p) => p.to_rerun(),
+            // TODO(cmc): we don't support custom camera projections, so don't log a frustum.
+            Projection::Custom(_) => rerun::Pinhole::new(rerun::Mat3x3::IDENTITY)
+                .with_camera_xyz(rerun::components::ViewCoordinates::RUB),
         }
     }
 }

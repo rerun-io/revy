@@ -31,7 +31,7 @@ rerun = { version = "0.35.0", default-features = false, features = [
     "glam",
 ] }
 
-bevy = { version = "0.15" }
+bevy = { version = "0.17" }
 # bevy = { path = "../../bevyengine/bevy/" }
 # `dynamic_linking` on windows hits error for maximum number of exported symbols on linking.
 # On linux, you may run into libc issues depending on your system.
@@ -41,5 +41,5 @@ itertools = "0.13"
 ron = "0.8"
 
 [dev-dependencies]
-rand = "0.8"
-rand_chacha = "0.3"
+rand = "0.9"
+rand_chacha = "0.9"
