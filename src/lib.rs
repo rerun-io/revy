@@ -32,7 +32,7 @@ pub use self::conversions::ToRerun;
 pub use self::default_loggers::DefaultRerunComponentLoggers;
 pub use self::entity_path::{ancestors_from_world, compute_entity_path};
 pub use self::rerun_logger::{
-    get_component_logger, RerunComponentLoggers, RerunLogger, RerunLoggerFn,
+    RerunComponentLoggers, RerunLogger, RerunLoggerFn, get_component_logger,
 };
 
 pub(crate) use self::sync::RerunSyncPlugin;
