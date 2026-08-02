@@ -4,6 +4,7 @@ use bevy::{
         component::{ComponentId, ComponentInfo},
         entity::EntityHashMap,
         message::MessageCursor,
+        resource::IsResource,
     },
     platform::{collections::HashMap, hash::FixedHasher},
     prelude::*,
@@ -139,7 +140,10 @@ fn sync_components(
 
     let mut deferred_hash_updates = Vec::new();
 
-    let mut entities = world.query::<Entity>();
+    // NOTE: as of bevy 0.19, resources are backed by real (hidden) entities tagged
+    // `IsResource` -- exclude them, or we'd walk and log every resource in the app as if it
+    // were a game entity (hundreds of them with `DefaultPlugins`, none of them meaningful here).
+    let mut entities = world.query_filtered::<Entity, Without<IsResource>>();
     for entity_id in entities.iter(world) {
         // TODO(cmc): should cache this and deal with `HierarchyEvent` accordingly.
         let entity_path = compute_entity_path(world, &all_entities, entity_id);

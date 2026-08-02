@@ -49,3 +49,9 @@ ron = "0.8"
 [dev-dependencies]
 rand = "0.10"
 chacha20 = { version = "0.10", default-features = false, features = ["rng"] }
+
+# Release optimizations + debug symbols, for profiling (`cargo flamegraph --profile profiling`).
+# Plain `dev` is too slow to be representative; plain `release` strips the symbols a profiler needs.
+[profile.profiling]
+inherits = "release"
+debug = true
