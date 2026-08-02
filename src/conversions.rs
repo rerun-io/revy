@@ -223,6 +223,7 @@ impl ToRerun<rerun::Pinhole> for PerspectiveProjection {
             fov,
             aspect_ratio,
             near: _,
+            near_clip_plane: _,
             far: _,
         } = *self;
 

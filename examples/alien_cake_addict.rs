@@ -1,8 +1,8 @@
-//! Example from <https://github.com/bevyengine/bevy/blob/v0.17.3/examples/games/alien_cake_addict.rs>
+//! Example from <https://github.com/bevyengine/bevy/blob/v0.19.0/examples/showcase/alien_cake_addict.rs>
 //! with minimal changes to inject revy.
 //!
 //! This is part of the Bevy project and licensed separately from Revy under MIT & Apache-2.0.
-//! For details see <https://github.com/bevyengine/bevy/tree/v0.17.3?tab=readme-ov-file#license>
+//! For details see <https://github.com/bevyengine/bevy/tree/v0.19.0?tab=readme-ov-file#license>
 //!
 //! ------------------------------------------------------------------------------------------------
 //!
@@ -20,8 +20,9 @@
 use std::f32::consts::PI;
 
 use bevy::prelude::*;
-use rand::{Rng, SeedableRng};
-use rand_chacha::ChaCha8Rng;
+
+use chacha20::ChaCha8Rng;
+use rand::{RngExt, SeedableRng};
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
 enum GameState {
@@ -94,7 +95,7 @@ struct Bonus {
     entity: Option<Entity>,
     i: usize,
     j: usize,
-    handle: Handle<Scene>,
+    handle: Handle<WorldAsset>,
 }
 
 #[derive(Resource, Default)]
@@ -140,7 +141,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
         // This isn't strictly required in practical use unless you need your app to be deterministic.
         ChaCha8Rng::seed_from_u64(19878367467713)
     } else {
-        ChaCha8Rng::from_os_rng()
+        rand::make_rng()
     };
 
     // reset the game state
@@ -154,7 +155,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
         DespawnOnExit(GameState::Playing),
         PointLight {
             intensity: 2_000_000.0,
-            shadows_enabled: true,
+            shadow_maps_enabled: true,
             range: 30.0,
             ..default()
         },
@@ -172,7 +173,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
                     commands.spawn((
                         DespawnOnExit(GameState::Playing),
                         Transform::from_xyz(i as f32, height - 0.2, j as f32),
-                        SceneRoot(cell_scene.clone()),
+                        WorldAssetRoot(cell_scene.clone()),
                     ));
                     Cell { height }
                 })
@@ -194,7 +195,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
                     rotation: Quat::from_rotation_y(-PI / 2.),
                     ..default()
                 },
-                SceneRoot(
+                WorldAssetRoot(
                     asset_server
                         .load(GltfAssetLabel::Scene(0).from_asset("models/AlienCake/alien.glb")),
                 ),
@@ -211,7 +212,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
         DespawnOnExit(GameState::Playing),
         Text::new("Score:"),
         TextFont {
-            font_size: 33.0,
+            font_size: FontSize::Px(33.0),
             ..default()
         },
         TextColor(Color::srgb(0.5, 0.5, 1.0)),
@@ -377,7 +378,7 @@ fn spawn_bonus(
                     game.board[game.bonus.j][game.bonus.i].height + 0.2,
                     game.bonus.j as f32,
                 ),
-                SceneRoot(game.bonus.handle.clone()),
+                WorldAssetRoot(game.bonus.handle.clone()),
                 children![(
                     PointLight {
                         color: Color::srgb(1.0, 1.0, 0.0),
@@ -431,7 +432,7 @@ fn display_score(mut commands: Commands, game: Res<Game>) {
         children![(
             Text::new(format!("Cake eaten: {}", game.cake_eaten)),
             TextFont {
-                font_size: 67.0,
+                font_size: FontSize::Px(67.0),
                 ..default()
             },
             TextColor(Color::srgb(0.5, 0.5, 1.0)),

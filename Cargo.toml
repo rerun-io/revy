@@ -31,7 +31,13 @@ rerun = { version = "0.35.0", default-features = false, features = [
     "glam",
 ] }
 
-bevy = { version = "0.17" }
+
+# NOTE: `debug` used to be enabled by default (bevy <= 0.17), but bevy 0.19 slimmed down its
+# default feature set and dropped it. revy relies on `ComponentInfo::name()` returning real
+# component type names (via `bevy_ecs`/`bevy_utils`'s `debug` feature) for all of its name-based
+# logger dispatch -- without it, every component name collapses to a placeholder string and
+# nothing gets recognized, logged, or visualized correctly.
+bevy = { version = "0.19", features = ["debug"] }
 # bevy = { path = "../../bevyengine/bevy/" }
 # `dynamic_linking` on windows hits error for maximum number of exported symbols on linking.
 # On linux, you may run into libc issues depending on your system.
@@ -41,5 +47,5 @@ itertools = "0.13"
 ron = "0.8"
 
 [dev-dependencies]
-rand = "0.9"
-rand_chacha = "0.9"
+rand = "0.10"
+chacha20 = { version = "0.10", default-features = false, features = ["rng"] }
