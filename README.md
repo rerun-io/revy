@@ -51,7 +51,7 @@ https://github.com/rerun-io/revy/assets/2910679/cd096cbe-5e68-4acf-8010-e6c32c55
     })
     ```
     This will start a Rerun Viewer in the background and stream the recording data to it.  
-   Check out the [`RecordingStreamBuilder`](https://docs.rs/rerun/latest/rerun/struct.RecordingStreamBuilder.html) docs for other options (saving to file, connecting to a remote viewer, etc).
+    Check out the [`RecordingStreamBuilder`](https://docs.rs/rerun/latest/rerun/struct.RecordingStreamBuilder.html) docs for other options (saving to file, connecting to a remote viewer, etc).
 
 ## Examples
 
