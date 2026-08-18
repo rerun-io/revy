@@ -4,9 +4,9 @@ use bevy::{
     render::{mesh::PlaneMeshBuilder, primitives::Aabb},
 };
 
-use rerun::{external::nohash_hasher::IntMap, AsComponents as _, ComponentBatch};
+use rerun::{AsComponents as _, ComponentBatch as _, external::nohash_hasher::IntMap};
 
-use crate::{compute_entity_path, RerunLogger, ToRerun};
+use crate::{RerunLogger, ToRerun, compute_entity_path};
 
 // ---
 
@@ -19,7 +19,6 @@ use crate::{compute_entity_path, RerunLogger, ToRerun};
 pub struct DefaultRerunComponentLoggers(IntMap<rerun::ComponentName, Option<RerunLogger>>);
 
 // TODO(cmc): DataUi being typed makes aliases uninspectable :(
-#[allow(clippy::too_many_lines)]
 impl Default for DefaultRerunComponentLoggers {
     fn default() -> Self {
         let mut loggers = IntMap::default();
@@ -258,20 +257,18 @@ fn bevy_sprite<'w>(
     let batches = entity
         .get::<Sprite>()
         .and_then(|sprite| {
-            world
+            let (image_format, image_data) = world
                 .resource::<Assets<Image>>()
                 .get(sprite.image.id())
-                .and_then(ToRerun::to_rerun)
-                .and_then(|(image_format, image_data)| {
-                    let mesh = PlaneMeshBuilder::default()
-                        .normal(Dir3::Z)
-                        .size(image_format.width as _, image_format.height as _)
-                        .build();
-                    mesh.to_rerun().map(|mesh| {
-                        mesh.with_albedo_factor(sprite.color.to_rerun())
-                            .with_albedo_texture(image_format, image_data)
-                    })
-                })
+                .and_then(ToRerun::to_rerun)?;
+            let mesh = PlaneMeshBuilder::default()
+                .normal(Dir3::Z)
+                .size(image_format.width as _, image_format.height as _)
+                .build();
+            mesh.to_rerun().map(|mesh| {
+                mesh.with_albedo_factor(sprite.color.to_rerun())
+                    .with_albedo_texture(image_format, image_data)
+            })
         })
         .into_iter()
         .flat_map(|mesh| mesh.as_serialized_batches())
