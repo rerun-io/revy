@@ -24,7 +24,7 @@ jobs:
         uses: awalsh128/cache-apt-pkgs-action@v1.5.1
         with:
           # Random stuff required by `bevy`
-          packages: libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev libasound2-dev libudev-dev
+          packages: libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev libasound2-dev libudev-dev libwayland-dev
           version: 1.0
           execute_install_scripts: true
 
@@ -102,7 +102,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - uses: EmbarkStudios/cargo-deny-action@v1
+      - uses: EmbarkStudios/cargo-deny-action@v2
         with:
           rust-version: "1.95.0"
           log-level: warn
