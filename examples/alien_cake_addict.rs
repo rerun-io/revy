@@ -22,7 +22,7 @@ use std::f32::consts::PI;
 use bevy::prelude::*;
 
 use chacha20::ChaCha8Rng;
-use rand::{RngExt, SeedableRng};
+use rand::{RngExt as _, SeedableRng as _};
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
 enum GameState {

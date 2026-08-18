@@ -7,12 +7,12 @@
 
 Revy is a proof-of-concept time-travel debugger for the [Bevy](https://github.com/bevyengine/bevy) game engine, built using [Rerun](https://github.com/rerun-io/rerun).
 
-The general idea is that one would use Revy to investigate gameplay/physics/general-behavior-ish kinds of bugs.  
-Revy is _not_ a graphics debugger: for that you'd use e.g. [RenderDoc](https://github.com/baldurk/renderdoc).  
+The general idea is that one would use Revy to investigate gameplay/physics/general-behavior-ish kinds of bugs.\
+Revy is _not_ a graphics debugger: for that you'd use e.g. [RenderDoc](https://github.com/baldurk/renderdoc).\
 It is _not_ a performance profiler either: for that, Bevy integrates well with e.g. [Tracy](https://github.com/wolfpld/tracy).
 
-Revy works by snapshotting diffs of the Bevy database every frame that are then logged into the Rerun database.  
-This allows you to inspect and visualize the state of the engine at any point in time, either in real-time or after the fact.  
+Revy works by snapshotting diffs of the Bevy database every frame that are then logged into the Rerun database.\
+This allows you to inspect and visualize the state of the engine at any point in time, either in real-time or after the fact.\
 These recordings can then be shared to be replayed or e.g. attached to bug reports.
 
 <!-- NOTE: This one is for rendering on Github -->
@@ -50,7 +50,7 @@ https://github.com/rerun-io/revy/assets/2910679/cd096cbe-5e68-4acf-8010-e6c32c55
         revy::RerunPlugin { rec }
     })
     ```
-    This will start a Rerun Viewer in the background and stream the recording data to it.  
+    This will start a Rerun Viewer in the background and stream the recording data to it.\
     Check out the [`RecordingStreamBuilder`](https://docs.rs/rerun/latest/rerun/struct.RecordingStreamBuilder.html) docs for other options (saving to file, connecting to a remote viewer, etc).
 
 ## Examples

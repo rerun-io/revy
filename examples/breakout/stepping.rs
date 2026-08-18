@@ -3,7 +3,13 @@
 // republish them as its own features just for this vendored example helper.
 #![allow(unexpected_cfgs)]
 
-use bevy::{app::MainScheduleOrder, ecs::schedule::*, prelude::*};
+use bevy::{
+    app::MainScheduleOrder,
+    ecs::schedule::{
+        InternedScheduleLabel, IntoScheduleConfigs as _, NodeId, ScheduleLabel, Schedules, Stepping,
+    },
+    prelude::*,
+};
 
 /// Independent [`Schedule`] for stepping systems.
 ///
@@ -24,14 +30,14 @@ pub struct SteppingPlugin {
 
 impl SteppingPlugin {
     /// add a schedule to be stepped when stepping is enabled
-    pub fn add_schedule(mut self, label: impl ScheduleLabel) -> SteppingPlugin {
+    pub fn add_schedule(mut self, label: impl ScheduleLabel) -> Self {
         self.schedule_labels.push(label.intern());
         self
     }
 
     /// Set the location of the stepping UI when activated
-    pub fn at(self, left: Val, top: Val) -> SteppingPlugin {
-        SteppingPlugin { top, left, ..self }
+    pub fn at(self, left: Val, top: Val) -> Self {
+        Self { top, left, ..self }
     }
 }
 
@@ -276,6 +282,8 @@ fn update_ui(
         } else {
             "   "
         };
-        *writer.text(ui, *text_index) = mark.to_string();
+        let mut text = writer.text(ui, *text_index);
+        text.clear();
+        text.push_str(mark);
     }
 }

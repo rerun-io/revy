@@ -6,7 +6,7 @@ use bevy::{
     prelude::*,
     reflect::{ReflectFromPtr, serde::ReflectSerializer},
 };
-use rerun::ComponentBatch;
+use rerun::ComponentBatch as _;
 
 use crate::DefaultRerunComponentLoggers;
 
@@ -53,8 +53,8 @@ impl std::ops::Deref for BoxedOrStaticRerunLogger {
     #[inline]
     fn deref(&self) -> &Self::Target {
         match self {
-            BoxedOrStaticRerunLogger::Boxed(f) => &**f,
-            BoxedOrStaticRerunLogger::Static(f) => f,
+            Self::Boxed(f) => &**f,
+            Self::Static(f) => f,
         }
     }
 }
@@ -132,7 +132,6 @@ pub fn get_component_logger<'a>(
         return logger;
     }
 
-    #[allow(clippy::unnecessary_wraps)]
     fn log_ignored_component(
         world: &World,
         _all_entities: &QueryState<(Entity, Option<&ChildOf>, Option<&Name>)>,
@@ -144,7 +143,9 @@ pub fn get_component_logger<'a>(
         let (archetype_name, field_name): (String, String) = if parts.len() >= 2 {
             (
                 parts[0..parts.len() - 1].join("."),
-                parts.last().unwrap().to_string(),
+                parts
+                    .last()
+                    .map_or_else(String::new, |last| (*last).to_owned()),
             )
         } else {
             ("bevy".to_owned(), component_type_name.replace("::", "."))
@@ -190,21 +191,19 @@ fn component_to_ron(
     let type_registry = world.resource::<AppTypeRegistry>();
     let type_registry = type_registry.read();
 
-    component
+    let reflect_from_ptr = component
         .type_id()
         .and_then(|tid| type_registry.get(tid))
-        .and_then(|ty| ty.data::<ReflectFromPtr>())
-        .and_then(|reflect_from_ptr| {
-            #[allow(unsafe_code)]
-            let reflected = entity
-                .get_by_id(component.id())
-                // Safety: the type registry cannot be wrong, surely
-                .map(|ptr| unsafe { reflect_from_ptr.as_reflect(ptr) });
+        .and_then(|ty| ty.data::<ReflectFromPtr>())?;
+    #[expect(unsafe_code)]
+    let reflected = entity
+        .get_by_id(component.id())
+        // Safety: the type registry cannot be wrong, surely
+        .map(|ptr| unsafe { reflect_from_ptr.as_reflect(ptr) });
 
-            reflected.ok().and_then(|reflected| {
-                let serializer =
-                    ReflectSerializer::new(reflected.as_partial_reflect(), &type_registry);
-                ron::ser::to_string_pretty(&serializer, ron::ser::PrettyConfig::default()).ok()
-            })
-        })
+    let reflected = reflected.ok()?;
+    let serializer = ReflectSerializer::new(reflected.as_partial_reflect(), &type_registry);
+    let ron = ron::ser::to_string_pretty(&serializer, ron::ser::PrettyConfig::default()).ok();
+    drop(type_registry);
+    ron
 }

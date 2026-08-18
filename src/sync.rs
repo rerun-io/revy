@@ -10,7 +10,7 @@ use bevy::{
     prelude::*,
     reflect::{ReflectFromPtr, serde::ReflectSerializer},
 };
-use rerun::external::re_log::ResultExt;
+use rerun::external::re_log::ResultExt as _;
 
 use crate::{
     DefaultRerunComponentLoggers, RerunComponentLoggers, compute_entity_path, get_component_logger,
@@ -279,30 +279,27 @@ fn component_to_hash(
     let type_registry = world.resource::<AppTypeRegistry>();
     let type_registry = type_registry.read();
 
-    component
+    let reflect_from_ptr = component
         .type_id()
         .and_then(|tid| type_registry.get(tid))
-        .and_then(|ty| ty.data::<ReflectFromPtr>())
-        .and_then(|reflect_from_ptr| {
-            #[allow(unsafe_code)]
-            let reflected = entity
-                .get_by_id(component.id())
-                // Safety: the type registry cannot be wrong, surely
-                .map(|ptr| unsafe { reflect_from_ptr.as_reflect(ptr) });
+        .and_then(|ty| ty.data::<ReflectFromPtr>())?;
+    #[expect(unsafe_code)]
+    let reflected = entity
+        .get_by_id(component.id())
+        // Safety: the type registry cannot be wrong, surely
+        .map(|ptr| unsafe { reflect_from_ptr.as_reflect(ptr) });
 
-            // TODO(cmc): `Reflect::reflect_hash` is basically never available so we go the long way
-            // instead... this is likely waaay too costly in practice :)
-            reflected.ok().and_then(|reflected| {
-                let serializer =
-                    ReflectSerializer::new(reflected.as_partial_reflect(), &type_registry);
-                let mut bytes = Vec::<u8>::new();
-                ron::ser::to_writer(&mut bytes, &serializer).ok()?;
+    // TODO(cmc): `Reflect::reflect_hash` is basically never available so we go the long way
+    // instead... this is likely waaay too costly in practice :)
+    let reflected = reflected.ok()?;
+    let serializer = ReflectSerializer::new(reflected.as_partial_reflect(), &type_registry);
+    let mut bytes = Vec::<u8>::new();
+    ron::ser::to_writer(&mut bytes, &serializer).ok()?;
+    drop(type_registry);
 
-                use std::hash::BuildHasher as _;
+    use std::hash::BuildHasher as _;
 
-                Some(FixedHasher.hash_one(&bytes))
-            })
-        })
+    Some(FixedHasher.hash_one(&bytes))
 }
 
 /// Used to deduplicate changes to components that don't actually change anything.

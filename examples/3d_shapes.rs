@@ -20,7 +20,10 @@
 //!
 //! You can toggle wireframes with the space bar except on wasm. Wasm does not support
 //! `POLYGON_MODE_LINE` on the gpu.
-
+#![expect(
+    clippy::cast_possible_truncation,
+    reason = "upstream Bevy example code, kept close to the original"
+)]
 #![allow(clippy::unwrap_used)]
 #![allow(clippy::needless_pass_by_value)]
 #![allow(elided_lifetimes_in_paths)]
@@ -235,7 +238,7 @@ fn setup(
     let mut text = "\
         Press 'R' to pause/resume rotation\n\
         Press 'Tab' to cycle through rows"
-        .to_string();
+        .to_owned();
     #[cfg(not(target_arch = "wasm32"))]
     text.push_str("\nPress 'Space' to toggle wireframes");
 
@@ -305,17 +308,17 @@ enum Row {
 impl Row {
     fn z(self) -> f32 {
         match self {
-            Row::Front => Z_EXTENT / 2.,
-            Row::Middle => 0.,
-            Row::Rear => -Z_EXTENT / 2.,
+            Self::Front => Z_EXTENT / 2.,
+            Self::Middle => 0.,
+            Self::Rear => -Z_EXTENT / 2.,
         }
     }
 
     fn advance(self) -> Self {
         match self {
-            Row::Front => Row::Rear,
-            Row::Middle => Row::Front,
-            Row::Rear => Row::Middle,
+            Self::Front => Self::Rear,
+            Self::Middle => Self::Front,
+            Self::Rear => Self::Middle,
         }
     }
 }

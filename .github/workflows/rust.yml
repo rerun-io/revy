@@ -37,11 +37,6 @@ jobs:
           command: fmt
           args: --all -- --check
 
-      - name: Install cargo-cranky
-        uses: baptiste0928/cargo-install@v1
-        with:
-          crate: cargo-cranky
-
       - name: check --all-features
         uses: actions-rs/cargo@v1
         with:
@@ -90,10 +85,10 @@ jobs:
           command: test
           args: --all-features
 
-      - name: Cranky
+      - name: Clippy
         uses: actions-rs/cargo@v1
         with:
-          command: cranky
+          command: clippy
           args: --all-targets --all-features -- -D warnings
 
   # ---------------------------------------------------------------------------

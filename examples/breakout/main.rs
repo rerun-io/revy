@@ -10,6 +10,10 @@
 //!
 //! Demonstrates Bevy's stepping capabilities if compiled with the `bevy_debug_stepping` feature.
 
+#![expect(
+    clippy::cast_possible_truncation,
+    reason = "upstream Bevy example code, kept close to the original"
+)]
 #![allow(clippy::unwrap_used)]
 #![allow(clippy::needless_pass_by_value)]
 #![allow(elided_lifetimes_in_paths)]
@@ -17,7 +21,7 @@
 #![allow(clippy::disallowed_methods)]
 
 use bevy::{
-    math::bounding::{Aabb2d, BoundingCircle, BoundingVolume, IntersectsVolume},
+    math::bounding::{Aabb2d, BoundingCircle, BoundingVolume as _, IntersectsVolume as _},
     prelude::*,
 };
 
@@ -141,10 +145,10 @@ impl WallLocation {
     /// Location of the *center* of the wall, used in `transform.translation()`
     fn position(&self) -> Vec2 {
         match self {
-            WallLocation::Left => Vec2::new(LEFT_WALL, 0.),
-            WallLocation::Right => Vec2::new(RIGHT_WALL, 0.),
-            WallLocation::Bottom => Vec2::new(0., BOTTOM_WALL),
-            WallLocation::Top => Vec2::new(0., TOP_WALL),
+            Self::Left => Vec2::new(LEFT_WALL, 0.),
+            Self::Right => Vec2::new(RIGHT_WALL, 0.),
+            Self::Bottom => Vec2::new(0., BOTTOM_WALL),
+            Self::Top => Vec2::new(0., TOP_WALL),
         }
     }
 
@@ -157,12 +161,8 @@ impl WallLocation {
         assert!(arena_width > 0.0);
 
         match self {
-            WallLocation::Left | WallLocation::Right => {
-                Vec2::new(WALL_THICKNESS, arena_height + WALL_THICKNESS)
-            }
-            WallLocation::Bottom | WallLocation::Top => {
-                Vec2::new(arena_width + WALL_THICKNESS, WALL_THICKNESS)
-            }
+            Self::Left | Self::Right => Vec2::new(WALL_THICKNESS, arena_height + WALL_THICKNESS),
+            Self::Bottom | Self::Top => Vec2::new(arena_width + WALL_THICKNESS, WALL_THICKNESS),
         }
     }
 }
@@ -171,9 +171,9 @@ impl Wall {
     // This "builder method" allows us to reuse logic across our wall entities,
     // making our code easier to read and less prone to bugs when we change the logic
     // Notice the use of Sprite and Transform alongside Wall, overwriting the default values defined for the required components
-    fn new(location: WallLocation) -> (Wall, Sprite, Transform) {
+    fn new(location: WallLocation) -> (Self, Sprite, Transform) {
         (
-            Wall,
+            Self,
             Sprite::from_color(WALL_COLOR, Vec2::ONE),
             Transform {
                 // We need to convert our Vec2 into a Vec3, by giving it a z-coordinate
@@ -280,7 +280,7 @@ fn setup(
 
     // Because we need to round the number of columns,
     // the space on the top and sides of the bricks only captures a lower bound, not an exact value
-    let center_of_bricks = (LEFT_WALL + RIGHT_WALL) / 2.0;
+    let center_of_bricks = f32::midpoint(LEFT_WALL, RIGHT_WALL);
     let left_edge_of_bricks = center_of_bricks
         // Space taken up by the bricks
         - (n_columns as f32 / 2.0 * BRICK_SIZE.x)
