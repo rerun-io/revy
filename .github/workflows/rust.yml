@@ -17,14 +17,14 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: default
-          toolchain: 1.82.0
+          toolchain: 1.95.0
           override: true
 
       - name: Install packages (Linux)
         uses: awalsh128/cache-apt-pkgs-action@v1.5.1
         with:
           # Random stuff required by `bevy`
-          packages: libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev libasound2-dev libudev-dev
+          packages: libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev libasound2-dev libudev-dev libwayland-dev
           version: 1.0
           execute_install_scripts: true
 
@@ -36,11 +36,6 @@ jobs:
         with:
           command: fmt
           args: --all -- --check
-
-      - name: Install cargo-cranky
-        uses: baptiste0928/cargo-install@v1
-        with:
-          crate: cargo-cranky
 
       - name: check --all-features
         uses: actions-rs/cargo@v1
@@ -90,10 +85,10 @@ jobs:
           command: test
           args: --all-features
 
-      - name: Cranky
+      - name: Clippy
         uses: actions-rs/cargo@v1
         with:
-          command: cranky
+          command: clippy
           args: --all-targets --all-features -- -D warnings
 
   # ---------------------------------------------------------------------------
@@ -102,8 +97,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - uses: EmbarkStudios/cargo-deny-action@v1
+      - uses: EmbarkStudios/cargo-deny-action@v2
         with:
-          rust-version: "1.82.0"
+          rust-version: "1.95.0"
           log-level: warn
           command: check

@@ -7,7 +7,10 @@
 //! ------------------------------------------------------------------------------------------------
 //!
 //! Eat the cakes. Eat them all. An example 3D game.
-
+#![expect(
+    clippy::collapsible_if,
+    reason = "upstream Bevy example code, kept close to the original"
+)]
 #![allow(clippy::unwrap_used)]
 #![allow(clippy::needless_pass_by_value)]
 #![allow(elided_lifetimes_in_paths)]
@@ -20,7 +23,7 @@
 use std::f32::consts::PI;
 
 use bevy::prelude::*;
-use rand::{Rng, SeedableRng};
+use rand::{Rng as _, SeedableRng as _};
 use rand_chacha::ChaCha8Rng;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]

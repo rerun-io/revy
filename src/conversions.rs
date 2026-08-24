@@ -1,5 +1,5 @@
 use bevy::{math::Vec3A, prelude::*, render::mesh::VertexAttributeValues};
-use itertools::Itertools;
+use itertools::Itertools as _;
 
 // ---
 
@@ -78,9 +78,13 @@ impl ToRerun<rerun::Rgba32> for Color {
 
 impl ToRerun<Option<rerun::archetypes::Mesh3D>> for Mesh {
     #[inline]
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "meshes with more than u32::MAX indices are not a thing, and the color channels are normalized"
+    )]
     fn to_rerun(&self) -> Option<rerun::archetypes::Mesh3D> {
         if let Some(VertexAttributeValues::Float32x3(positions)) =
-            self.attribute(Mesh::ATTRIBUTE_POSITION)
+            self.attribute(Self::ATTRIBUTE_POSITION)
         {
             let mut mesh = rerun::archetypes::Mesh3D::new(positions);
 
@@ -91,19 +95,19 @@ impl ToRerun<Option<rerun::archetypes::Mesh3D>> for Mesh {
             }
 
             if let Some(VertexAttributeValues::Float32x3(normals)) =
-                self.attribute(Mesh::ATTRIBUTE_NORMAL)
+                self.attribute(Self::ATTRIBUTE_NORMAL)
             {
                 mesh = mesh.with_vertex_normals(normals);
             }
 
             if let Some(VertexAttributeValues::Float32x2(texcoords)) =
-                self.attribute(Mesh::ATTRIBUTE_UV_0)
+                self.attribute(Self::ATTRIBUTE_UV_0)
             {
                 mesh = mesh.with_vertex_texcoords(texcoords);
             }
 
             if let Some(VertexAttributeValues::Float32x4(colors)) =
-                self.attribute(Mesh::ATTRIBUTE_COLOR)
+                self.attribute(Self::ATTRIBUTE_COLOR)
             {
                 mesh = mesh.with_vertex_colors(colors.iter().map(|[r, g, b, a]| {
                     // TODO(cmc): is this sRGB? linear? etc?
@@ -215,7 +219,7 @@ impl ToRerun<rerun::Pinhole> for OrthographicProjection {
 impl ToRerun<rerun::Pinhole> for PerspectiveProjection {
     #[inline]
     fn to_rerun(&self) -> rerun::Pinhole {
-        let PerspectiveProjection {
+        let Self {
             fov,
             aspect_ratio,
             near: _,
@@ -231,8 +235,8 @@ impl ToRerun<rerun::Pinhole> for Projection {
     #[inline]
     fn to_rerun(&self) -> rerun::Pinhole {
         match self {
-            Projection::Perspective(p) => p.to_rerun(),
-            Projection::Orthographic(p) => p.to_rerun(),
+            Self::Perspective(p) => p.to_rerun(),
+            Self::Orthographic(p) => p.to_rerun(),
         }
     }
 }

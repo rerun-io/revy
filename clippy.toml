@@ -5,7 +5,7 @@
 # -----------------------------------------------------------------------------
 # Section identical to scripts/clippy_wasm/clippy.toml:
 
-msrv = "1.82"
+msrv = "1.95"
 
 allow-unwrap-in-tests = true
 
@@ -28,7 +28,7 @@ too-many-lines-threshold = 200
 # -----------------------------------------------------------------------------
 
 # https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_macros
-disallowed-macros = ['dbg']
+disallowed-macros = ['std::dbg']
 
 # https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_methods
 disallowed-methods = [

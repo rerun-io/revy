@@ -11,7 +11,10 @@
 //!
 //! You can toggle wireframes with the space bar except on wasm. Wasm does not support
 //! `POLYGON_MODE_LINE` on the gpu.
-
+#![expect(
+    clippy::cast_possible_truncation,
+    reason = "upstream Bevy example code, kept close to the original"
+)]
 #![allow(clippy::unwrap_used)]
 #![allow(clippy::needless_pass_by_value)]
 #![allow(elided_lifetimes_in_paths)]
