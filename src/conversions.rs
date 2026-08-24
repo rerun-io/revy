@@ -1,4 +1,4 @@
-use bevy::{math::Vec3A, prelude::*, render::mesh::VertexAttributeValues};
+use bevy::{math::Vec3A, mesh::VertexAttributeValues, prelude::*};
 use itertools::Itertools as _;
 
 // ---
@@ -52,13 +52,13 @@ impl ToRerun<rerun::Mat3x3> for Mat3 {
 impl ToRerun<rerun::Transform3D> for Transform {
     #[inline]
     fn to_rerun(&self) -> rerun::Transform3D {
+        // NOTE: axes are no longer drawn by default (they'd need a separate `TransformAxes3D`
+        // archetype logged alongside this one), so there's nothing to opt out of here anymore.
         rerun::Transform3D::from_translation_rotation_scale(
             self.translation.to_rerun(),
             self.rotation.to_rerun(),
             rerun::Scale3D::from(self.scale.to_rerun()),
         )
-        // Don't show axis - this is quite annoying in Rerun 0.20 otherwise.
-        .with_axis_length(0.0)
     }
 }
 impl ToRerun<rerun::Transform3D> for GlobalTransform {
@@ -191,6 +191,10 @@ impl
 
         let width_height = [self.width(), self.height()];
 
+        // NOTE: `data` is `None` for images whose data lives only in the render world (e.g.
+        // render targets) -- nothing to log in that case.
+        let data = self.data.clone()?;
+
         color_model.map(|_| {
             (
                 rerun::datatypes::ImageFormat {
@@ -201,7 +205,7 @@ impl
                     channel_datatype,
                 }
                 .into(),
-                rerun::components::ImageBuffer(self.data.clone().into()),
+                rerun::components::ImageBuffer(data.into()),
             )
         })
     }
@@ -223,6 +227,7 @@ impl ToRerun<rerun::Pinhole> for PerspectiveProjection {
             fov,
             aspect_ratio,
             near: _,
+            near_clip_plane: _,
             far: _,
         } = *self;
 
@@ -237,6 +242,9 @@ impl ToRerun<rerun::Pinhole> for Projection {
         match self {
             Self::Perspective(p) => p.to_rerun(),
             Self::Orthographic(p) => p.to_rerun(),
+            // TODO(cmc): we don't support custom camera projections, so don't log a frustum.
+            Self::Custom(_) => rerun::Pinhole::new(rerun::Mat3x3::IDENTITY)
+                .with_camera_xyz(rerun::components::ViewCoordinates::RUB),
         }
     }
 }

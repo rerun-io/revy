@@ -2,9 +2,9 @@ use std::sync::Arc;
 
 use bevy::{
     ecs::component::ComponentInfo,
+    platform::collections::HashMap,
     prelude::*,
     reflect::{ReflectFromPtr, serde::ReflectSerializer},
-    utils::HashMap,
 };
 use rerun::ComponentBatch as _;
 
@@ -22,7 +22,7 @@ pub trait RerunLoggerFn:
     + Sync
     + for<'w> Fn(
         &'w World,
-        &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+        &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
         EntityRef<'_>,
         &'w ComponentInfo,
     ) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>)
@@ -34,7 +34,7 @@ impl<F> RerunLoggerFn for F where
         + Sync
         + for<'w> Fn(
             &'w World,
-            &'w QueryState<(Entity, Option<&'w Parent>, Option<&'w Name>)>,
+            &'w QueryState<(Entity, Option<&'w ChildOf>, Option<&'w Name>)>,
             EntityRef<'_>,
             &'w ComponentInfo,
         ) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>)
@@ -99,10 +99,10 @@ impl RerunLogger {
 ///
 /// If no default logger exists, the data will be logged as a [`rerun::TextDocument`].
 #[derive(Resource, Deref, DerefMut, Clone)]
-pub struct RerunComponentLoggers(pub HashMap<rerun::ComponentName, Option<RerunLogger>>);
+pub struct RerunComponentLoggers(pub HashMap<rerun::ComponentType, Option<RerunLogger>>);
 
 impl RerunComponentLoggers {
-    pub fn new(it: impl IntoIterator<Item = (rerun::ComponentName, Option<RerunLogger>)>) -> Self {
+    pub fn new(it: impl IntoIterator<Item = (rerun::ComponentType, Option<RerunLogger>)>) -> Self {
         Self(it.into_iter().collect())
     }
 }
@@ -112,7 +112,8 @@ pub fn get_component_logger<'a>(
     loggers: Option<&'a RerunComponentLoggers>,
     default_loggers: &'a DefaultRerunComponentLoggers,
 ) -> Option<&'a RerunLogger> {
-    let component_name = rerun::ComponentName::from(component.name());
+    let component_name =
+        rerun::ComponentType::try_new(&*component.name()).expect("component name is never empty");
 
     if let Some(logger) = loggers.and_then(|loggers| {
         loggers
@@ -133,23 +134,45 @@ pub fn get_component_logger<'a>(
 
     fn log_ignored_component(
         world: &World,
-        _all_entities: &QueryState<(Entity, Option<&Parent>, Option<&Name>)>,
+        _all_entities: &QueryState<(Entity, Option<&ChildOf>, Option<&Name>)>,
         entity: EntityRef<'_>,
         component: &ComponentInfo,
     ) -> (Option<&'static str>, Vec<rerun::SerializedComponentBatch>) {
-        let name = component.name();
+        let component_type_name = component.name();
+        let parts = component_type_name.split("::").collect::<Vec<_>>();
+        let (archetype_name, field_name): (String, String) = if parts.len() >= 2 {
+            (
+                parts[0..parts.len() - 1].join("."),
+                parts
+                    .last()
+                    .map_or_else(String::new, |last| (*last).to_owned()),
+            )
+        } else {
+            ("bevy".to_owned(), component_type_name.replace("::", "."))
+        };
+
+        let descriptor = rerun::ComponentDescriptor {
+            archetype: Some(
+                rerun::ArchetypeName::try_new(archetype_name.clone())
+                    .expect("archetype name is never empty"),
+            ),
+            component: rerun::ComponentIdentifier::try_new(format!(
+                "{archetype_name}:{field_name}"
+            ))
+            .expect("component name is never empty"),
+            component_type: Some(
+                rerun::ComponentType::try_new(&*component_type_name)
+                    .expect("component type name is never empty"),
+            ),
+        };
+
         let body = component_to_ron(world, entity, component)
             .unwrap_or_else(|| "<missing reflection metadata>".into());
         (
             None,
             rerun::components::Text(body.into())
-                .serialized()
+                .serialized(descriptor)
                 .into_iter()
-                .map(|batch| {
-                    batch.with_descriptor_override(rerun::ComponentDescriptor::new(
-                        name.replace("::", "."),
-                    ))
-                })
                 .collect(),
         )
     }

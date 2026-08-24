@@ -32,9 +32,7 @@ all-features = true
 version = 2
 ignore = [
   "RUSTSEC-2024-0436", # https://rustsec.org/advisories/RUSTSEC-2024-0436 - paste is unmaintained - https://github.com/dtolnay/paste
-  "RUSTSEC-2026-0097", # https://rustsec.org/advisories/RUSTSEC-2026-0097 - rand 0.8 is unsound; the fix is in rand 0.9, which we get with the next bevy bump
-  "RUSTSEC-2026-0192", # https://rustsec.org/advisories/RUSTSEC-2026-0192 - ttf-parser is unmaintained, with no safe upgrade
-  "RUSTSEC-2026-0206", # https://rustsec.org/advisories/RUSTSEC-2026-0206 - rustybuzz is unmaintained, reached via cosmic-text in bevy_text
+  "RUSTSEC-2026-0192", # https://rustsec.org/advisories/RUSTSEC-2026-0192 - ttf-parser is unmaintained, with no safe upgrade. Reached via bevy -> winit -> sctk-adwaita -> ab_glyph
 ]
 
 
@@ -45,29 +43,42 @@ deny = []
 skip = []
 skip-tree = [
   # TODO(emilk): minimize duplicated dependencies
+  "accesskit_consumer", # accesskit_winit 0.32 and bevy_a11y pull in different versions
   "base64",
   "bit-set",
   "bit-vec",
   "cargo_metadata",
-  "core-foundation", # bevy_gilrs depends on an older version that wgpu's metal & winit
+  "codespan-reporting",
+  "console",
+  "convert_case",
+  "core-foundation",   # bevy_gilrs depends on an older version that wgpu's metal & winit
+  "downcast-rs",
   "event-listener",
-  "fixedbitset",     # Bevy has internally several versions
-  "glam",            # Rerun is behind versus Bevy
+  "fixedbitset",       # Bevy has internally several versions
+  "font-types",        # fontations stack, via cosmic-text and ab_glyph
+  "getrandom",
+  "glam",              # Rerun is behind versus Bevy
+  "hashbrown",
   "indexmap",
   "itertools",
   "libloading",
+  "linux-raw-sys",
   "nix",
-  "re_arrow2",       # drags in all sort of dependencies that are duplicates with Bevy
+  "objc2-foundation",
+  "read-fonts",        # fontations stack, via cosmic-text and ab_glyph
   "redox_syscall",
   "regex-automata",
   "regex-syntax",
-  "sysinfo",         # rerun depends on 0.30, bevy on 0.32
+  "ron",               # revy uses 0.8, bevy 0.19 uses a newer one
+  "rustix",
+  "skrifa",            # fontations stack, via cosmic-text and ab_glyph
+  "sysinfo",           # rerun depends on 0.30, bevy on 0.32
   "tower",
-  "ttf-parser",      # cosmic-text 0.12.1 depends on one version directly and on another one via fontdb 0.16.2
+  "ttf-parser",        # cosmic-text 0.12.1 depends on one version directly and on another one via fontdb 0.16.2
+  "twox-hash",         # lz4_flex 0.11.6 uses 2.x, rerun still uses 1.x
   "unicode-width",
-  "twox-hash",       # lz4_flex 0.11.6 uses 2.x, rerun still uses 1.x
-  "windows-sys",
   "windows",
+  "windows-sys",
 ]
 
 
@@ -82,6 +93,7 @@ allow = [
   "BSD-3-Clause",                   # https://tldrlegal.com/license/bsd-3-clause-license-(revised)
   "BSL-1.0",                        # https://tldrlegal.com/license/boost-software-license-1.0-explained
   "CC0-1.0",                        # https://creativecommons.org/publicdomain/zero/1.0/
+  "CDLA-Permissive-2.0",            # https://cdla.dev/permissive-2-0/ - used by webpki-roots
   "ISC",                            # https://www.tldrlegal.com/license/isc-license
   "MIT-0",                          # https://choosealicense.com/licenses/mit-0/
   "MIT",                            # https://tldrlegal.com/license/mit-license

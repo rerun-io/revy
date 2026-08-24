@@ -1,6 +1,6 @@
 [package]
 name = "revy"
-version = "0.22.0"
+version = "0.35.0"
 authors = ["rerun.io <opensource@rerun.io>"]
 categories = [
     "game-development",
@@ -25,12 +25,19 @@ targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
 
 
 [dependencies]
-rerun = { version = "0.22.0", default-features = false, features = [
+rerun = { version = "0.35.0", default-features = false, features = [
     "sdk",
     "image",
     "glam",
 ] }
-bevy = { version = "0.15" }
+
+
+# NOTE: `debug` used to be enabled by default (bevy <= 0.17), but bevy 0.19 slimmed down its
+# default feature set and dropped it. revy relies on `ComponentInfo::name()` returning real
+# component type names (via `bevy_ecs`/`bevy_utils`'s `debug` feature) for all of its name-based
+# logger dispatch -- without it, every component name collapses to a placeholder string and
+# nothing gets recognized, logged, or visualized correctly.
+bevy = { version = "0.19", features = ["debug"] }
 # bevy = { path = "../../bevyengine/bevy/" }
 # `dynamic_linking` on windows hits error for maximum number of exported symbols on linking.
 # On linux, you may run into libc issues depending on your system.
@@ -40,8 +47,14 @@ itertools = "0.13"
 ron = "0.8"
 
 [dev-dependencies]
-rand = "0.8"
-rand_chacha = "0.3"
+rand = "0.10"
+chacha20 = { version = "0.10", default-features = false, features = ["rng"] }
+
+# Release optimizations + debug symbols, for profiling (`cargo flamegraph --profile profiling`).
+# Plain `dev` is too slow to be representative; plain `release` strips the symbols a profiler needs.
+[profile.profiling]
+inherits = "release"
+debug = true
 
 [lints]
 workspace = true

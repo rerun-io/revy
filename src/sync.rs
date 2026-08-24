@@ -1,15 +1,14 @@
-use std::hash::Hash as _;
-
 use bevy::{
-    core::FrameCount,
+    diagnostic::FrameCount,
     ecs::{
         component::{ComponentId, ComponentInfo},
         entity::EntityHashMap,
-        event::EventCursor,
+        message::MessageCursor,
+        resource::IsResource,
     },
+    platform::{collections::HashMap, hash::FixedHasher},
     prelude::*,
     reflect::{ReflectFromPtr, serde::ReflectSerializer},
-    utils::{AHasher, HashMap},
 };
 use rerun::external::re_log::ResultExt as _;
 
@@ -85,7 +84,7 @@ fn set_recording_time(world: &World, rec: &rerun::RecordingStream) {
     let tick = world.resource::<FrameCount>();
     let frame = tick.0;
 
-    rec.set_time_seconds("sim_time", elapsed);
+    rec.set_duration_secs("sim_time", elapsed);
     // TODO(cmc): i'll log it once i can tell the blueprint to default to `sim_time`.
     // rec.set_time_sequence("sim_frame", frame);
     _ = frame;
@@ -93,19 +92,19 @@ fn set_recording_time(world: &World, rec: &rerun::RecordingStream) {
 
 // TODO(cmc): implement proper subscription model for asset dependencies
 const DEPENDS_ON_IMAGES: &[&str] = &[
-    "bevy_render::mesh::components::Mesh3d",
+    "bevy_mesh::components::Mesh3d",
     "bevy_sprite::sprite::Sprite",
 ];
 const DEPENDS_ON_MESHES: &[&str] = &[
-    "bevy_render::mesh::components::Mesh3d", //
+    "bevy_mesh::components::Mesh3d", //
 ];
 const DEPENDS_ON_STDMATS: &[&str] = &[
-    "bevy_render::mesh::components::Mesh3d", //
-    "bevy_render::primitives::Aabb",         //
+    "bevy_mesh::components::Mesh3d", //
+    "bevy_camera::primitives::Aabb", //
 ];
 const DEPENDS_ON_COLMATS: &[&str] = &[
-    "bevy_render::mesh::components::Mesh3d", //
-    "bevy_render::primitives::Aabb",         //
+    "bevy_mesh::components::Mesh3d", //
+    "bevy_camera::primitives::Aabb", //
 ];
 
 /// Synchronize the Bevy and Rerun database by logging all components appropriately.
@@ -121,13 +120,13 @@ fn sync_components(
 
     let _trace = info_span!("sync_components").entered();
 
-    let mut all_entities = world.query::<(Entity, Option<&Parent>, Option<&Name>)>();
+    let mut all_entities = world.query::<(Entity, Option<&ChildOf>, Option<&Name>)>();
     all_entities.update_archetypes(world);
 
     // TODO(cmc): do this the smart way
     fn collect_events<A: Asset>(world: &mut World) -> Vec<AssetEvent<A>> {
-        let events = world.resource_mut::<Events<AssetEvent<A>>>();
-        let mut cursor = EventCursor::<AssetEvent<A>>::default();
+        let events = world.resource_mut::<Messages<AssetEvent<A>>>();
+        let mut cursor = MessageCursor::<AssetEvent<A>>::default();
         cursor.read(&events).copied().collect()
     }
     let image_events = collect_events::<Image>(world);
@@ -141,7 +140,10 @@ fn sync_components(
 
     let mut deferred_hash_updates = Vec::new();
 
-    let mut entities = world.query::<Entity>();
+    // NOTE: as of bevy 0.19, resources are backed by real (hidden) entities tagged
+    // `IsResource` -- exclude them, or we'd walk and log every resource in the app as if it
+    // were a game entity (hundreds of them with `DefaultPlugins`, none of them meaningful here).
+    let mut entities = world.query_filtered::<Entity, Without<IsResource>>();
     for entity_id in entities.iter(world) {
         // TODO(cmc): should cache this and deal with `HierarchyEvent` accordingly.
         let entity_path = compute_entity_path(world, &all_entities, entity_id);
@@ -165,19 +167,23 @@ fn sync_components(
             Option<&'static str>,
             Vec<Vec<rerun::SerializedComponentBatch>>,
         > = Default::default();
-        for component in world.inspect_entity(entity_id) {
+        for component in world
+            .inspect_entity(entity_id)
+            .expect("entity was just looked up above, so it must exist")
+        {
+            let component_name = &*component.name();
+
             let mut has_changed = entity
                 .get_change_ticks_by_id(component.id())
                 .is_some_and(|changes| changes.is_changed(last_change_tick, change_tick));
 
             // TODO(cmc): implement proper subscription model for asset dependencies
+            has_changed |= !image_events.is_empty() && DEPENDS_ON_IMAGES.contains(&component_name);
+            has_changed |= !mesh_events.is_empty() && DEPENDS_ON_MESHES.contains(&component_name);
             has_changed |=
-                !image_events.is_empty() && DEPENDS_ON_IMAGES.contains(&component.name());
-            has_changed |= !mesh_events.is_empty() && DEPENDS_ON_MESHES.contains(&component.name());
+                !stdmat_events.is_empty() && DEPENDS_ON_STDMATS.contains(&component_name);
             has_changed |=
-                !stdmat_events.is_empty() && DEPENDS_ON_STDMATS.contains(&component.name());
-            has_changed |=
-                !colmat_events.is_empty() && DEPENDS_ON_COLMATS.contains(&component.name());
+                !colmat_events.is_empty() && DEPENDS_ON_COLMATS.contains(&component_name);
 
             if !has_changed {
                 continue;
@@ -205,7 +211,8 @@ fn sync_components(
             deferred_hash_updates.push((entity_id, current_hashes));
         }
 
-        let mut current_components = HashMap::default();
+        let mut current_components: HashMap<rerun::ComponentDescriptor, rerun::EntityPath> =
+            HashMap::default();
 
         for (suffix, batches) in all_batches {
             let entity_path: rerun::EntityPath = suffix.map_or_else(
@@ -290,10 +297,9 @@ fn component_to_hash(
     ron::ser::to_writer(&mut bytes, &serializer).ok()?;
     drop(type_registry);
 
-    use std::hash::Hasher as _;
-    let mut hasher = AHasher::default();
-    bytes.hash(&mut hasher);
-    Some(hasher.finish())
+    use std::hash::BuildHasher as _;
+
+    Some(FixedHasher.hash_one(&bytes))
 }
 
 /// Used to deduplicate changes to components that don't actually change anything.

@@ -1,19 +1,19 @@
-//! Example from <https://github.com/bevyengine/bevy/blob/release-0.15.0/examples/games/breakout.rs>
+//! Example from <https://github.com/bevyengine/bevy/blob/v0.19.0/examples/showcase/breakout.rs>
 //! with minimal changes to inject revy.
 //!
 //! This is part of the Bevy project and licensed separately from Revy under MIT & Apache-2.0.
-//! For details see <https://github.com/bevyengine/bevy/tree/release-0.15.0?tab=readme-ov-file#license>
+//! For details see <https://github.com/bevyengine/bevy/tree/v0.19.0?tab=readme-ov-file#license>
 //!
 //! ------------------------------------------------------------------------------------------------
 //!
 //! A simplified implementation of the classic game "Breakout".
 //!
 //! Demonstrates Bevy's stepping capabilities if compiled with the `bevy_debug_stepping` feature.
+
 #![expect(
     clippy::cast_possible_truncation,
     reason = "upstream Bevy example code, kept close to the original"
 )]
-// All of these have the same justification: this is not our code.
 #![allow(clippy::unwrap_used)]
 #![allow(clippy::needless_pass_by_value)]
 #![allow(elided_lifetimes_in_paths)]
@@ -24,6 +24,8 @@ use bevy::{
     math::bounding::{Aabb2d, BoundingCircle, BoundingVolume as _, IntersectsVolume as _},
     prelude::*,
 };
+
+mod stepping;
 
 // These constants are defined in `Transform` units.
 // Using the default 2D camera they correspond 1:1 with screen pixels.
@@ -55,7 +57,7 @@ const GAP_BETWEEN_BRICKS: f32 = 5.0;
 const GAP_BETWEEN_BRICKS_AND_CEILING: f32 = 20.0;
 const GAP_BETWEEN_BRICKS_AND_SIDES: f32 = 20.0;
 
-const SCOREBOARD_FONT_SIZE: f32 = 33.0;
+const SCOREBOARD_FONT_SIZE: FontSize = FontSize::Px(33.0);
 const SCOREBOARD_TEXT_PADDING: Val = Val::Px(5.0);
 
 const BACKGROUND_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
@@ -83,24 +85,24 @@ fn main() {
             revy::RerunPlugin { rec }
         })
         // ===============================================================================
+        .add_plugins(
+            stepping::SteppingPlugin::default()
+                .add_schedule(Update)
+                .at(percent(35), percent(50)),
+        )
         .insert_resource(Score(0))
         .insert_resource(ClearColor(BACKGROUND_COLOR))
-        .add_event::<CollisionEvent>()
         .add_systems(Startup, setup)
-        // Add our gameplay simulation systems to the fixed timestep schedule
-        // which runs at 64 Hz by default
+        // Add our simulation systems to the update schedule
+        // which is called once per frame.
         .add_systems(
-            FixedUpdate,
-            (
-                apply_velocity,
-                move_paddle,
-                check_for_collisions,
-                play_collision_sound,
-            )
+            Update,
+            (apply_velocity, move_paddle, check_for_collisions)
                 // `chain`ing systems together runs them in order
                 .chain(),
         )
         .add_systems(Update, update_scoreboard)
+        .add_observer(play_collision_sound)
         .run();
 }
 
@@ -113,11 +115,8 @@ struct Ball;
 #[derive(Component, Deref, DerefMut)]
 struct Velocity(Vec2);
 
-#[derive(Component)]
-struct Collider;
-
-#[derive(Event, Default)]
-struct CollisionEvent;
+#[derive(Event)]
+struct BallCollided;
 
 #[derive(Component)]
 struct Brick;
@@ -125,15 +124,14 @@ struct Brick;
 #[derive(Resource, Deref)]
 struct CollisionSound(Handle<AudioSource>);
 
-// This bundle is a collection of the components that define a "wall" in our game
-#[derive(Bundle)]
-struct WallBundle {
-    // You can nest bundles inside of other bundles like this
-    // Allowing you to compose their functionality
-    sprite: Sprite,
-    transform: Transform,
-    collider: Collider,
-}
+// Default must be implemented to define this as a required component for the Wall component below
+#[derive(Component, Default)]
+struct Collider;
+
+// This is a collection of the components that define a "Wall" in our game
+#[derive(Component)]
+#[require(Sprite, Transform, Collider)]
+struct Wall;
 
 /// Which side of the arena is this wall located on?
 enum WallLocation {
@@ -169,13 +167,15 @@ impl WallLocation {
     }
 }
 
-impl WallBundle {
+impl Wall {
     // This "builder method" allows us to reuse logic across our wall entities,
     // making our code easier to read and less prone to bugs when we change the logic
-    fn new(location: WallLocation) -> Self {
-        Self {
-            sprite: Sprite::from_color(WALL_COLOR, Vec2::ONE),
-            transform: Transform {
+    // Notice the use of Sprite and Transform alongside Wall, overwriting the default values defined for the required components
+    fn new(location: WallLocation) -> (Self, Sprite, Transform) {
+        (
+            Self,
+            Sprite::from_color(WALL_COLOR, Vec2::ONE),
+            Transform {
                 // We need to convert our Vec2 into a Vec3, by giving it a z-coordinate
                 // This is used to determine the order of our sprites
                 translation: location.position().extend(0.0),
@@ -185,8 +185,7 @@ impl WallBundle {
                 scale: location.size().extend(1.0),
                 ..default()
             },
-            collider: Collider,
-        }
+        )
     }
 }
 
@@ -236,36 +235,35 @@ fn setup(
     ));
 
     // Scoreboard
-    commands
-        .spawn((
-            Text::new("Score: "),
-            TextFont {
-                font_size: SCOREBOARD_FONT_SIZE,
-                ..default()
-            },
-            TextColor(TEXT_COLOR),
-            ScoreboardUi,
-            Node {
-                position_type: PositionType::Absolute,
-                top: SCOREBOARD_TEXT_PADDING,
-                left: SCOREBOARD_TEXT_PADDING,
-                ..default()
-            },
-        ))
-        .with_child((
+    commands.spawn((
+        Text::new("Score: "),
+        TextFont {
+            font_size: SCOREBOARD_FONT_SIZE,
+            ..default()
+        },
+        TextColor(TEXT_COLOR),
+        ScoreboardUi,
+        Node {
+            position_type: PositionType::Absolute,
+            top: SCOREBOARD_TEXT_PADDING,
+            left: SCOREBOARD_TEXT_PADDING,
+            ..default()
+        },
+        children![(
             TextSpan::default(),
             TextFont {
                 font_size: SCOREBOARD_FONT_SIZE,
                 ..default()
             },
             TextColor(SCORE_COLOR),
-        ));
+        )],
+    ));
 
     // Walls
-    commands.spawn(WallBundle::new(WallLocation::Left));
-    commands.spawn(WallBundle::new(WallLocation::Right));
-    commands.spawn(WallBundle::new(WallLocation::Bottom));
-    commands.spawn(WallBundle::new(WallLocation::Top));
+    commands.spawn(Wall::new(WallLocation::Left));
+    commands.spawn(Wall::new(WallLocation::Right));
+    commands.spawn(Wall::new(WallLocation::Bottom));
+    commands.spawn(Wall::new(WallLocation::Top));
 
     // Bricks
     let total_width_of_bricks = (RIGHT_WALL - LEFT_WALL) - 2. * GAP_BETWEEN_BRICKS_AND_SIDES;
@@ -366,7 +364,6 @@ fn check_for_collisions(
     mut score: ResMut<Score>,
     ball_query: Single<(&mut Velocity, &Transform), With<Ball>>,
     collider_query: Query<(Entity, &Transform, Option<&Brick>), With<Collider>>,
-    mut collision_events: EventWriter<CollisionEvent>,
 ) {
     let (mut ball_velocity, ball_transform) = ball_query.into_inner();
 
@@ -380,8 +377,8 @@ fn check_for_collisions(
         );
 
         if let Some(collision) = collision {
-            // Sends a collision event so that other systems can react to the collision
-            collision_events.send_default();
+            // Trigger observers of the "BallCollided" event
+            commands.trigger(BallCollided);
 
             // Bricks should be despawned and increment the scoreboard on collision
             if maybe_brick.is_some() {
@@ -416,16 +413,11 @@ fn check_for_collisions(
 }
 
 fn play_collision_sound(
+    _collided: On<BallCollided>,
     mut commands: Commands,
-    mut collision_events: EventReader<CollisionEvent>,
     sound: Res<CollisionSound>,
 ) {
-    // Play a sound once per frame if a collision occurred.
-    if !collision_events.is_empty() {
-        // This prevents events staying active on the next frame.
-        collision_events.clear();
-        commands.spawn((AudioPlayer(sound.clone()), PlaybackSettings::DESPAWN));
-    }
+    commands.spawn((AudioPlayer(sound.clone()), PlaybackSettings::DESPAWN));
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]

@@ -1,16 +1,13 @@
-//! Example from <https://github.com/bevyengine/bevy/blob/release-0.15.0/examples/games/breakout.rs>
+//! Example from <https://github.com/bevyengine/bevy/blob/v0.19.0/examples/showcase/alien_cake_addict.rs>
 //! with minimal changes to inject revy.
 //!
 //! This is part of the Bevy project and licensed separately from Revy under MIT & Apache-2.0.
-//! For details see <https://github.com/bevyengine/bevy/tree/release-0.15.0?tab=readme-ov-file#license>
+//! For details see <https://github.com/bevyengine/bevy/tree/v0.19.0?tab=readme-ov-file#license>
 //!
 //! ------------------------------------------------------------------------------------------------
 //!
 //! Eat the cakes. Eat them all. An example 3D game.
-#![expect(
-    clippy::collapsible_if,
-    reason = "upstream Bevy example code, kept close to the original"
-)]
+
 #![allow(clippy::unwrap_used)]
 #![allow(clippy::needless_pass_by_value)]
 #![allow(elided_lifetimes_in_paths)]
@@ -23,8 +20,9 @@
 use std::f32::consts::PI;
 
 use bevy::prelude::*;
-use rand::{Rng as _, SeedableRng as _};
-use rand_chacha::ChaCha8Rng;
+
+use chacha20::ChaCha8Rng;
+use rand::{RngExt as _, SeedableRng as _};
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
 enum GameState {
@@ -53,19 +51,20 @@ fn main() {
             revy::RerunPlugin { rec }
         })
         // ===============================================================================
+        .register_type::<UserInput>()
         .init_resource::<Game>()
         .insert_resource(BonusSpawnTimer(Timer::from_seconds(
             5.0,
             TimerMode::Repeating,
         )))
         .init_state::<GameState>()
-        .enable_state_scoped_entities::<GameState>()
         .add_systems(Startup, setup_cameras)
         .add_systems(OnEnter(GameState::Playing), setup)
         .add_systems(
             Update,
             (
-                move_player,
+                capture_user_input,
+                move_player.after(capture_user_input),
                 focus_camera,
                 rotate_bonus,
                 scoreboard_system,
@@ -76,7 +75,7 @@ fn main() {
         .add_systems(OnEnter(GameState::GameOver), display_score)
         .add_systems(
             Update,
-            gameover_keyboard.run_if(in_state(GameState::GameOver)),
+            game_over_keyboard.run_if(in_state(GameState::GameOver)),
         )
         .run();
 }
@@ -98,7 +97,7 @@ struct Bonus {
     entity: Option<Entity>,
     i: usize,
     j: usize,
-    handle: Handle<Scene>,
+    handle: Handle<WorldAsset>,
 }
 
 #[derive(Resource, Default)]
@@ -114,6 +113,26 @@ struct Game {
 
 #[derive(Resource, Deref, DerefMut)]
 struct Random(ChaCha8Rng);
+
+/// A per-frame snapshot of the raw keyboard state that's relevant to gameplay.
+///
+/// `capture_user_input` writes this every frame from `ButtonInput<KeyCode>`, and `move_player`
+/// (which runs after it) reads *this* instead of polling `ButtonInput<KeyCode>` directly. From
+/// the player's perspective nothing changes -- movement still responds to the same keys on the
+/// same frame. What changes is that raw input is now itself a `Component`, which means a
+/// debugger/inspector walking the ECS (like the Rerun viewer, via `revy`) can see exactly what
+/// input the game acted on each frame, not just the resulting player position -- and, being on
+/// its own dedicated entity rather than `ButtonInput<KeyCode>` (a `Resource`, invisible to
+/// `revy`) or a field tacked onto the player, it shows up as its own clearly separate thing in
+/// the entity tree instead of being lost among the (much more numerous) board tiles.
+#[derive(Component, Reflect, Default, Debug, Clone, Copy)]
+#[reflect(Component)]
+struct UserInput {
+    arrow_up: bool,
+    arrow_down: bool,
+    arrow_left: bool,
+    arrow_right: bool,
+}
 
 const BOARD_SIZE_I: usize = 14;
 const BOARD_SIZE_J: usize = 21;
@@ -144,7 +163,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
         // This isn't strictly required in practical use unless you need your app to be deterministic.
         ChaCha8Rng::seed_from_u64(19878367467713)
     } else {
-        ChaCha8Rng::from_entropy()
+        rand::make_rng()
     };
 
     // reset the game state
@@ -155,10 +174,16 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
     game.player.move_cooldown = Timer::from_seconds(0.3, TimerMode::Once);
 
     commands.spawn((
-        StateScoped(GameState::Playing),
+        DespawnOnExit(GameState::Playing),
+        Name::new("input"),
+        UserInput::default(),
+    ));
+
+    commands.spawn((
+        DespawnOnExit(GameState::Playing),
         PointLight {
             intensity: 2_000_000.0,
-            shadows_enabled: true,
+            shadow_maps_enabled: true,
             range: 30.0,
             ..default()
         },
@@ -166,17 +191,33 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
     ));
 
     // spawn the game board
+    //
+    // All tiles are spawned as children of a single `board` entity (rather than directly under
+    // the scene root) purely so that debuggers/inspectors -- e.g. the Rerun viewer via `revy` --
+    // can show the (potentially large) grid of tiles as one collapsible group instead of a flat
+    // list of hundreds of same-looking, arbitrarily-named entities alongside the player, camera,
+    // etc. `DespawnOnExit` only needs to live on `board` itself: despawning an entity in Bevy is
+    // recursive by default, so its tile children go with it.
     let cell_scene =
         asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/AlienCake/tile.glb"));
+    let board = commands
+        .spawn((
+            DespawnOnExit(GameState::Playing),
+            Name::new("board"),
+            Transform::IDENTITY,
+            Visibility::default(),
+        ))
+        .id();
     game.board = (0..BOARD_SIZE_J)
         .map(|j| {
             (0..BOARD_SIZE_I)
                 .map(|i| {
-                    let height = rng.gen_range(-0.1..0.1);
+                    let height = rng.random_range(-0.1..0.1);
                     commands.spawn((
-                        StateScoped(GameState::Playing),
+                        ChildOf(board),
+                        Name::new(format!("tile_{i}_{j}")),
                         Transform::from_xyz(i as f32, height - 0.2, j as f32),
-                        SceneRoot(cell_scene.clone()),
+                        WorldAssetRoot(cell_scene.clone()),
                     ));
                     Cell { height }
                 })
@@ -188,7 +229,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
     game.player.entity = Some(
         commands
             .spawn((
-                StateScoped(GameState::Playing),
+                DespawnOnExit(GameState::Playing),
                 Transform {
                     translation: Vec3::new(
                         game.player.i as f32,
@@ -198,7 +239,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
                     rotation: Quat::from_rotation_y(-PI / 2.),
                     ..default()
                 },
-                SceneRoot(
+                WorldAssetRoot(
                     asset_server
                         .load(GltfAssetLabel::Scene(0).from_asset("models/AlienCake/alien.glb")),
                 ),
@@ -212,17 +253,17 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
 
     // scoreboard
     commands.spawn((
-        StateScoped(GameState::Playing),
+        DespawnOnExit(GameState::Playing),
         Text::new("Score:"),
         TextFont {
-            font_size: 33.0,
+            font_size: FontSize::Px(33.0),
             ..default()
         },
         TextColor(Color::srgb(0.5, 0.5, 1.0)),
         Node {
             position_type: PositionType::Absolute,
-            top: Val::Px(5.0),
-            left: Val::Px(5.0),
+            top: px(5),
+            left: px(5),
             ..default()
         },
     ));
@@ -230,40 +271,55 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
     commands.insert_resource(Random(rng));
 }
 
+/// Copies the raw keyboard state relevant to gameplay into the `UserInput` component, so that
+/// `move_player` (and anything watching the recording) sees input as ECS data rather than
+/// reaching into `ButtonInput<KeyCode>` directly. Must run before `move_player`.
+fn capture_user_input(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut input: Single<&mut UserInput>,
+) {
+    **input = UserInput {
+        arrow_up: keyboard_input.pressed(KeyCode::ArrowUp),
+        arrow_down: keyboard_input.pressed(KeyCode::ArrowDown),
+        arrow_left: keyboard_input.pressed(KeyCode::ArrowLeft),
+        arrow_right: keyboard_input.pressed(KeyCode::ArrowRight),
+    };
+}
+
 // control the game character
 fn move_player(
     mut commands: Commands,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
+    input: Single<&UserInput>,
     mut game: ResMut<Game>,
     mut transforms: Query<&mut Transform>,
     time: Res<Time>,
 ) {
-    if game.player.move_cooldown.tick(time.delta()).finished() {
+    if game.player.move_cooldown.tick(time.delta()).is_finished() {
         let mut moved = false;
         let mut rotation = 0.0;
 
-        if keyboard_input.pressed(KeyCode::ArrowUp) {
+        if input.arrow_up {
             if game.player.i < BOARD_SIZE_I - 1 {
                 game.player.i += 1;
             }
             rotation = -PI / 2.;
             moved = true;
         }
-        if keyboard_input.pressed(KeyCode::ArrowDown) {
+        if input.arrow_down {
             if game.player.i > 0 {
                 game.player.i -= 1;
             }
             rotation = PI / 2.;
             moved = true;
         }
-        if keyboard_input.pressed(KeyCode::ArrowRight) {
+        if input.arrow_right {
             if game.player.j < BOARD_SIZE_J - 1 {
                 game.player.j += 1;
             }
             rotation = PI;
             moved = true;
         }
-        if keyboard_input.pressed(KeyCode::ArrowLeft) {
+        if input.arrow_left {
             if game.player.j > 0 {
                 game.player.j -= 1;
             }
@@ -287,13 +343,14 @@ fn move_player(
     }
 
     // eat the cake!
-    if let Some(entity) = game.bonus.entity {
-        if game.player.i == game.bonus.i && game.player.j == game.bonus.j {
-            game.score += 2;
-            game.cake_eaten += 1;
-            commands.entity(entity).despawn_recursive();
-            game.bonus.entity = None;
-        }
+    if let Some(entity) = game.bonus.entity
+        && game.player.i == game.bonus.i
+        && game.player.j == game.bonus.j
+    {
+        game.score += 2;
+        game.cake_eaten += 1;
+        commands.entity(entity).despawn();
+        game.bonus.entity = None;
     }
 }
 
@@ -349,13 +406,13 @@ fn spawn_bonus(
     mut rng: ResMut<Random>,
 ) {
     // make sure we wait enough time before spawning the next cake
-    if !timer.0.tick(time.delta()).finished() {
+    if !timer.0.tick(time.delta()).is_finished() {
         return;
     }
 
     if let Some(entity) = game.bonus.entity {
         game.score -= 3;
-        commands.entity(entity).despawn_recursive();
+        commands.entity(entity).despawn();
         game.bonus.entity = None;
         if game.score <= -5 {
             next_state.set(GameState::GameOver);
@@ -365,8 +422,8 @@ fn spawn_bonus(
 
     // ensure bonus doesn't spawn on the player
     loop {
-        game.bonus.i = rng.gen_range(0..BOARD_SIZE_I);
-        game.bonus.j = rng.gen_range(0..BOARD_SIZE_J);
+        game.bonus.i = rng.random_range(0..BOARD_SIZE_I);
+        game.bonus.j = rng.random_range(0..BOARD_SIZE_J);
         if game.bonus.i != game.player.i || game.bonus.j != game.player.j {
             break;
         }
@@ -374,22 +431,22 @@ fn spawn_bonus(
     game.bonus.entity = Some(
         commands
             .spawn((
-                StateScoped(GameState::Playing),
+                DespawnOnExit(GameState::Playing),
                 Transform::from_xyz(
                     game.bonus.i as f32,
                     game.board[game.bonus.j][game.bonus.i].height + 0.2,
                     game.bonus.j as f32,
                 ),
-                SceneRoot(game.bonus.handle.clone()),
-            ))
-            .with_child((
-                PointLight {
-                    color: Color::srgb(1.0, 1.0, 0.0),
-                    intensity: 500_000.0,
-                    range: 10.0,
-                    ..default()
-                },
-                Transform::from_xyz(0.0, 2.0, 0.0),
+                WorldAssetRoot(game.bonus.handle.clone()),
+                children![(
+                    PointLight {
+                        color: Color::srgb(1.0, 1.0, 0.0),
+                        intensity: 500_000.0,
+                        range: 10.0,
+                        ..default()
+                    },
+                    Transform::from_xyz(0.0, 2.0, 0.0),
+                )],
             ))
             .id(),
     );
@@ -397,12 +454,12 @@ fn spawn_bonus(
 
 // let the cake turn on itself
 fn rotate_bonus(game: Res<Game>, time: Res<Time>, mut transforms: Query<&mut Transform>) {
-    if let Some(entity) = game.bonus.entity {
-        if let Ok(mut cake_transform) = transforms.get_mut(entity) {
-            cake_transform.rotate_y(time.delta_secs());
-            cake_transform.scale =
-                Vec3::splat(1.0 + (game.score as f32 / 10.0 * ops::sin(time.elapsed_secs())).abs());
-        }
+    if let Some(entity) = game.bonus.entity
+        && let Ok(mut cake_transform) = transforms.get_mut(entity)
+    {
+        cake_transform.rotate_y(time.delta_secs());
+        cake_transform.scale =
+            Vec3::splat(1.0 + (game.score as f32 / 10.0 * ops::sin(time.elapsed_secs())).abs());
     }
 }
 
@@ -412,7 +469,7 @@ fn scoreboard_system(game: Res<Game>, mut display: Single<&mut Text>) {
 }
 
 // restart the game when pressing spacebar
-fn gameover_keyboard(
+fn game_over_keyboard(
     mut next_state: ResMut<NextState<GameState>>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
 ) {
@@ -423,22 +480,21 @@ fn gameover_keyboard(
 
 // display the number of cake eaten before losing
 fn display_score(mut commands: Commands, game: Res<Game>) {
-    commands
-        .spawn((
-            StateScoped(GameState::GameOver),
-            Node {
-                width: Val::Percent(100.),
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
-                ..default()
-            },
-        ))
-        .with_child((
+    commands.spawn((
+        DespawnOnExit(GameState::GameOver),
+        Node {
+            width: percent(100),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            ..default()
+        },
+        children![(
             Text::new(format!("Cake eaten: {}", game.cake_eaten)),
             TextFont {
-                font_size: 67.0,
+                font_size: FontSize::Px(67.0),
                 ..default()
             },
             TextColor(Color::srgb(0.5, 0.5, 1.0)),
-        ));
+        )],
+    ));
 }
