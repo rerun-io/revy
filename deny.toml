@@ -75,8 +75,8 @@ skip-tree = [
   "sysinfo",           # rerun depends on 0.30, bevy on 0.32
   "tower",
   "ttf-parser",        # cosmic-text 0.12.1 depends on one version directly and on another one via fontdb 0.16.2
-  "unicode-width",
   "twox-hash",         # lz4_flex 0.11.6 uses 2.x, rerun still uses 1.x
+  "unicode-width",
   "windows",
   "windows-sys",
 ]

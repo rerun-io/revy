@@ -13,13 +13,10 @@ pub fn ancestors_from_world<'w: 's, 's>(
 ) -> impl Iterator<Item = Entity> + 'w {
     let mut current_entity_id = entity_id;
     std::iter::from_fn(move || {
-        if let Ok((_, parent, _)) = entities.get_manual(world, current_entity_id)
-            && let Some(parent) = parent
-        {
-            current_entity_id = parent.parent();
-            return Some(parent.parent());
-        }
-        None
+        let (_, parent, _) = entities.get_manual(world, current_entity_id).ok()?;
+        let parent = parent?.parent();
+        current_entity_id = parent;
+        Some(parent)
     })
 }
 
